@@ -10,7 +10,7 @@ export default function DashboardLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: any;
 }) {
   const { locale } = params;
   const router = useRouter();

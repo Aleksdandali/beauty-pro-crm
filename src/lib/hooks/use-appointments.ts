@@ -51,7 +51,7 @@ export function useCreateAppointment() {
   return useMutation({
     mutationFn: async (appointment: AppointmentInsert) => {
       const supabase = createClient();
-      const { data, error } = await supabase.from("appointments").insert(appointment).select().single();
+      const { data, error } = await supabase.from("appointments").insert(appointment as any).select().single();
 
       if (error) throw error;
       return data;

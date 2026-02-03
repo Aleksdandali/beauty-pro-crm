@@ -11,7 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 
-export default function SignInPage({ params: { locale } }: { params: { locale: string } }) {
+export default function SignInPage({ params }: { params: any }) {
+  const { locale } = params;
   const t = useTranslations("auth");
   const router = useRouter();
   const { toast } = useToast();
