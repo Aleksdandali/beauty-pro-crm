@@ -7,11 +7,12 @@ import { useEffect, useState } from "react";
 
 export default function DashboardLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
   params: { locale: string };
 }) {
+  const { locale } = params;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
