@@ -2,62 +2,64 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignInPage({ params }: { params: any }) {
   const { locale } = params;
-  const t = useTranslations("auth");
   const router = useRouter();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (signInError) throw signInError;
 
+      console.log("✅ Успішний вхід:", data.user?.email);
+      
+      // Перенаправляем на dashboard
       router.push(`/${locale}/dashboard`);
       router.refresh();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to sign in",
-      });
+    } catch (err: any) {
+      console.error("❌ Помилка входу:", err);
+      setError(err.message || "Помилка входу. Перевірте email та пароль.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Beauty Pro CRM</CardTitle>
-          <CardDescription className="text-center">{t("signIn")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
-              <Input
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 px-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-black mb-2">
+              Beauty Pro CRM
+            </h1>
+            <p className="text-zinc-500">Вхід в систему</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSignIn} className="space-y-6">
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-zinc-700 mb-2">
+                Email
+              </label>
+              <input
                 id="email"
                 type="email"
                 placeholder="mail@example.com"
@@ -65,31 +67,63 @@ export default function SignInPage({ params }: { params: any }) {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t("password")}</Label>
-              <Input
+
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-zinc-700 mb-2">
+                Пароль
+              </label>
+              <input
                 id="password"
                 type="password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t("loading") : t("signIn")}
-            </Button>
+
+            {/* Error */}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-zinc-800 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            >
+              {isLoading ? "Завантаження..." : "Увійти"}
+            </button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            <span className="text-zinc-500">{t("dontHaveAccount")} </span>
-            <Link href={`/${locale}/auth/signup`} className="font-medium underline">
-              {t("signUp")}
+
+          {/* Sign Up Link */}
+          <div className="mt-6 text-center text-sm">
+            <span className="text-zinc-500">Немає акаунту? </span>
+            <Link 
+              href={`/${locale}/auth/signup`} 
+              className="font-medium text-black underline hover:no-underline"
+            >
+              Зареєструватись
             </Link>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Status */}
+          <div className="mt-8 pt-6 border-t border-zinc-200">
+            <p className="text-xs text-zinc-400 text-center">
+              🔐 Supabase Auth підключено
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
