@@ -9,21 +9,27 @@ const intlMiddleware = createMiddleware({
 });
 
 export async function middleware(request: NextRequest) {
-  // Handle authentication first
-  const response = await updateSession(request);
-  
-  // Then handle internationalization
-  const intlResponse = intlMiddleware(request);
-  
-  // Merge headers if needed
-  if (intlResponse) {
-    response.headers.forEach((value, key) => {
-      intlResponse.headers.set(key, value);
-    });
-    return intlResponse;
+  try {
+    // Handle authentication first
+    const response = await updateSession(request);
+    
+    // Then handle internationalization
+    const intlResponse = intlMiddleware(request);
+    
+    // Merge headers if needed
+    if (intlResponse) {
+      response.headers.forEach((value, key) => {
+        intlResponse.headers.set(key, value);
+      });
+      return intlResponse;
+    }
+    
+    return response;
+  } catch (error) {
+    // If middleware fails, just pass through
+    console.error('Middleware error:', error);
+    return NextResponse.next();
   }
-  
-  return response;
 }
 
 export const config = {
