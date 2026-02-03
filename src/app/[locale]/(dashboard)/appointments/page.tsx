@@ -62,7 +62,7 @@ export default function AppointmentsPage() {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold">
-            Today's Appointments ({appointments.length})
+            Today&apos;s Appointments ({appointments.length})
           </h3>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
