@@ -14,7 +14,13 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const messages = await getMessages();
+  
+  let messages = {};
+  try {
+    messages = await getMessages();
+  } catch (error) {
+    console.error('Error loading messages:', error);
+  }
 
   return (
     <html lang={locale}>
