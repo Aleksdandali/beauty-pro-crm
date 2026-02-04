@@ -158,15 +158,15 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Sign Up Link */}
+          {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-zinc-500">
               Don&apos;t have an account?{" "}
               <Link 
-                href={`/${locale}/signup`}
+                href="/register"
                 className="font-medium text-black hover:underline"
               >
-                Sign up
+                Register
               </Link>
             </p>
           </div>

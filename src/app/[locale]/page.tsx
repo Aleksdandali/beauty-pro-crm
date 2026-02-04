@@ -1,56 +1,40 @@
+import Link from "next/link";
+
 export default function HomePage({
   params,
 }: {
   params: { locale: string };
 }) {
-  const { locale } = params;
-  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-zinc-50">
-      <div className="text-center p-8 max-w-2xl">
-        <div className="mb-8">
-          <h1 className="text-6xl font-bold text-black mb-4">
-            Beauty Pro CRM
-          </h1>
-          <div className="h-1 w-32 bg-black mx-auto"></div>
-        </div>
-        
-        <p className="text-2xl text-zinc-600 mb-8">
-          ✨ Система працює! ✨
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+      {/* Logo */}
+      <div className="inline-flex items-center justify-center w-20 h-20 bg-black rounded-3xl mb-8">
+        <span className="text-4xl">💅</span>
+      </div>
+
+      {/* Title */}
+      <h1 className="text-6xl md:text-7xl font-bold text-black mb-6 tracking-tight text-center">
+        Beauty Pro CRM
+      </h1>
+
+      {/* Slogan */}
+      <p className="text-xl md:text-2xl text-zinc-500 mb-12 text-center max-w-md">
+        Control your beauty business
+      </p>
+
+      {/* CTA Button */}
+      <Link
+        href="/login"
+        className="px-10 py-4 bg-black text-white text-lg font-medium rounded-full hover:bg-zinc-800 transition-all duration-200 hover:scale-105 shadow-lg"
+      >
+        Open System
+      </Link>
+
+      {/* Footer */}
+      <div className="absolute bottom-8 text-center">
+        <p className="text-sm text-zinc-400">
+          © 2026 Beauty Pro CRM. All rights reserved.
         </p>
-        
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="p-4 bg-white rounded-lg shadow-sm">
-            <div className="text-2xl mb-2">🌍</div>
-            <div className="text-xs text-zinc-500">Локаль</div>
-            <div className="font-semibold">{locale}</div>
-          </div>
-          
-          <div className="p-4 bg-white rounded-lg shadow-sm">
-            <div className="text-2xl mb-2">🗄️</div>
-            <div className="text-xs text-zinc-500">База даних</div>
-            <div className="font-semibold text-green-600">Готова</div>
-          </div>
-          
-          <div className="p-4 bg-white rounded-lg shadow-sm">
-            <div className="text-2xl mb-2">🚀</div>
-            <div className="text-xs text-zinc-500">Хостинг</div>
-            <div className="font-semibold">Vercel</div>
-          </div>
-        </div>
-        
-        <div className="space-y-3">
-          <a 
-            href={`/${locale}/auth/signin`}
-            className="block px-8 py-4 bg-black text-white rounded-lg hover:bg-zinc-800 transition-all hover:scale-105"
-          >
-            Увійти в Систему
-          </a>
-          
-          <p className="text-xs text-zinc-400">
-            Локалізація: UK/EN • База: Supabase • Framework: Next.js 14
-          </p>
-        </div>
       </div>
     </div>
   );
