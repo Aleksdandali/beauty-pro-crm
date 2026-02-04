@@ -2,7 +2,11 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createSalonSchema, type CreateSalonInput } from "@/lib/validations/salon";
-import { redirect } from "next/navigation";
+import type { Database } from "@/types/database";
+
+type StaffRow = Database["public"]["Tables"]["staff"]["Row"];
+type SalonInsert = Database["public"]["Tables"]["salons"]["Insert"];
+type StaffInsert = Database["public"]["Tables"]["staff"]["Insert"];
 
 /**
  * Проверить завершил ли пользователь онбординг
@@ -63,7 +67,7 @@ export async function createSalonWithOwner(input: CreateSalonInput) {
     .from("staff")
     .select("id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (existingStaff) {
     throw new Error("У вас вже є салон / You already have a salon");
@@ -76,16 +80,18 @@ export async function createSalonWithOwner(input: CreateSalonInput) {
     .replace(/^-+|-+$/g, "");
 
   // 1. Создать салон
+  const salonData: SalonInsert = {
+    name: validatedData.name,
+    slug: `${slug}-${Date.now()}`,
+    phone: validatedData.phone || null,
+    city: validatedData.city || null,
+    address: validatedData.address || null,
+    owner_id: user.id,
+  };
+
   const { data: salon, error: salonError } = await supabase
     .from("salons")
-    .insert({
-      name: validatedData.name,
-      slug: `${slug}-${Date.now()}`, // Добавляем timestamp для уникальности
-      phone: validatedData.phone || null,
-      city: validatedData.city || null,
-      address: validatedData.address || null,
-      owner_id: user.id,
-    })
+    .insert(salonData)
     .select()
     .single();
 
@@ -95,7 +101,7 @@ export async function createSalonWithOwner(input: CreateSalonInput) {
   }
 
   // 2. Создать запись в staff (owner)
-  const { error: staffError } = await supabase.from("staff").insert({
+  const staffData: StaffInsert = {
     salon_id: salon.id,
     user_id: user.id,
     role: "owner",
@@ -103,7 +109,9 @@ export async function createSalonWithOwner(input: CreateSalonInput) {
     email: userEmail,
     phone: validatedData.phone || null,
     is_active: true,
-  });
+  };
+
+  const { error: staffError } = await supabase.from("staff").insert(staffData);
 
   if (staffError) {
     console.error("Ошибка создания staff:", staffError);
