@@ -26,7 +26,7 @@ export async function checkOnboardingStatus(): Promise<string | null> {
     .from("staff")
     .select("salon_id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (staffError || !staffRecord) {
     return null;
