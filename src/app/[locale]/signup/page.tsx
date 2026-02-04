@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
-export default function SignUpPage() {
+export default function SignUpPage({ params }: { params: { locale: string } }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,8 +31,7 @@ export default function SignUpPage() {
           data: {
             full_name: fullName,
           },
-          // Skip email confirmation for now
-          emailRedirectTo: `${window.location.origin}/uk/onboarding`,
+          emailRedirectTo: `${window.location.origin}/${params.locale}/dashboard`,
         },
       });
 
@@ -44,11 +43,11 @@ export default function SignUpPage() {
       // Check if email confirmation is required
       if (data.session) {
         // User is automatically signed in (email confirmation disabled)
-        console.log("→ Email confirmation disabled, redirecting to dashboard");
+        console.log(`→ Email confirmation disabled, redirecting to /${params.locale}/dashboard`);
         setSuccess(true);
         
         setTimeout(() => {
-          router.push("/uk/dashboard");
+          router.push(`/${params.locale}/dashboard`);
           router.refresh();
         }, 1500);
       } else {
@@ -196,7 +195,7 @@ export default function SignUpPage() {
             <p className="text-sm text-zinc-500">
               Already have an account?{" "}
               <Link 
-                href="/login" 
+                href={`/${params.locale}/login`}
                 className="font-medium text-black hover:underline"
               >
                 Sign in

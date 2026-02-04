@@ -60,13 +60,13 @@ export default function TestLoginPage() {
 
         if (signInError) {
           setStatus(`❌ Login Error: ${signInError.message}`);
-        } else {
-          setStatus("✅ Login successful! Redirecting to dashboard...");
-          setTimeout(() => {
-            router.push("/dashboard");
-            router.refresh();
-          }, 2000);
-        }
+                } else {
+                  setStatus("✅ Login successful! Redirecting to dashboard...");
+                  setTimeout(() => {
+                    router.push("/uk/dashboard");
+                    router.refresh();
+                  }, 2000);
+                }
       }, 2000);
     }
   }

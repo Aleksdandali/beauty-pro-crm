@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function LoginPage({ params }: { params: { locale: string } }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,21 +31,11 @@ export default function LoginPage() {
 
       console.log("✅ Sign in successful:", data.user.email);
 
-      // Step 2: Check if user has staff record
-      const { data: staffRecord, error: staffError } = await supabase
-        .from("staff")
-        .select("salon_id, role")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
-
-      if (staffError) {
-        console.error("❌ Staff check error:", staffError);
-      }
-
-      // Step 3: Redirect to dashboard
-      console.log("→ Redirecting to dashboard");
-      router.push("/uk/dashboard");
+      // Step 2: Redirect to dashboard with locale
+      console.log(`→ Redirecting to /${params.locale}/dashboard`);
+      router.push(`/${params.locale}/dashboard`);
       router.refresh();
+      
     } catch (err: any) {
       console.error("❌ Sign in error:", err);
       setError(err.message || "Invalid email or password");
@@ -104,7 +94,7 @@ export default function LoginPage() {
                   Password
                 </label>
                 <Link 
-                  href="/forgot-password" 
+                  href={`/${params.locale}/forgot-password`}
                   className="text-xs text-zinc-500 hover:text-black transition"
                 >
                   Forgot password?
@@ -154,7 +144,7 @@ export default function LoginPage() {
             <p className="text-sm text-zinc-500">
               Don&apos;t have an account?{" "}
               <Link 
-                href="/signup" 
+                href={`/${params.locale}/signup`}
                 className="font-medium text-black hover:underline"
               >
                 Sign up

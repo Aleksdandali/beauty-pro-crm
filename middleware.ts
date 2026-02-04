@@ -44,8 +44,20 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // Extract locale from pathname (e.g., /uk/dashboard -> uk)
+  const localeMatch = pathname.match(/^\/([a-z]{2})(\/|$)/);
+  const locale = localeMatch ? localeMatch[1] : "uk"; // default to 'uk'
+
   // Public routes (no auth required)
-  const publicRoutes = ["/", "/login", "/signup", "/test-login"];
+  const publicRoutes = [
+    "/",
+    "/uk/login",
+    "/uk/signup",
+    "/en/login",
+    "/en/signup",
+    "/test-login",
+  ];
+  
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + "/"));
 
   // If it's a public route, allow
@@ -55,7 +67,8 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes: Check session
   if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // Redirect to login with locale
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
   return response;
