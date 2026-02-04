@@ -58,15 +58,25 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect /dashboard routes
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    if (!user) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  const pathname = request.nextUrl.pathname;
+
+  // Public routes (no auth required)
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/signup",
+    "/forgot-password",
+  ];
+
+  const isPublicRoute = publicRoutes.includes(pathname);
+
+  // If user is not authenticated and trying to access protected route
+  if (!user && !isPublicRoute) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Redirect authenticated users from /login to /dashboard
-  if (request.nextUrl.pathname === "/login" && user) {
+  if (pathname === "/login" && user) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
