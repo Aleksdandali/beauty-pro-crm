@@ -16,6 +16,7 @@ export interface Database {
           slug: string;
           owner_id: string;
           address: string | null;
+          city: string | null;
           phone: string | null;
           email: string | null;
           currency: string;
@@ -30,6 +31,7 @@ export interface Database {
           slug: string;
           owner_id: string;
           address?: string | null;
+          city?: string | null;
           phone?: string | null;
           email?: string | null;
           currency?: string;
@@ -44,6 +46,7 @@ export interface Database {
           slug?: string;
           owner_id?: string;
           address?: string | null;
+          city?: string | null;
           phone?: string | null;
           email?: string | null;
           currency?: string;
