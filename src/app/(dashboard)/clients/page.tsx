@@ -32,6 +32,16 @@ async function fetchClients(
   rfmFilter: RFMSegment | "all"
 ): Promise<ClientsResponse> {
   const supabase = createClient();
+  
+  // Перевірка автентифікації
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.error("Auth error:", authError);
+    throw new Error("Not authenticated");
+  }
+  
+  console.log("✅ User authenticated:", user.id);
+  
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -55,7 +65,10 @@ async function fetchClients(
 
   const { data, error, count } = await query;
 
-  if (error) throw error;
+  if (error) {
+    console.error("Fetch error:", error);
+    throw error;
+  }
 
   return {
     data: data || [],
@@ -90,25 +103,38 @@ export default function ClientsPage() {
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [rfmFilter, setRFMFilter] = useState<RFMSegment | "all">("all");
-  const [salonId, setSalonId] = useState<string | null>(null);
+  // Temporary hardcoded salon_id for testing
+  const [salonId, setSalonId] = useState<string | null>("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
   const pageSize = 20;
 
   // Get current user's salon_id
   useEffect(() => {
     async function getSalonId() {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      console.log("User:", user);
+      console.log("User Error:", userError);
       
       if (user) {
-        const { data: staff } = await supabase
+        const { data: staff, error: staffError } = await supabase
           .from("staff")
           .select("salon_id")
           .eq("user_id", user.id)
-          .single<{ salon_id: string }>();
+          .single() as { data: { salon_id: string } | null; error: any };
+        
+        console.log("Staff:", staff);
+        console.log("Staff Error:", staffError);
+        console.log("SalonId:", staff?.salon_id);
         
         if (staff?.salon_id) {
           setSalonId(staff.salon_id);
+          console.log("✅ SalonId set successfully:", staff.salon_id);
+        } else {
+          console.error("❌ No salon_id found for user");
         }
+      } else {
+        console.error("❌ No user found");
       }
     }
     getSalonId();
@@ -131,6 +157,9 @@ export default function ClientsPage() {
             <h1 className="text-3xl font-bold text-black tracking-tight">Клієнти</h1>
             <p className="text-zinc-600 mt-1">
               {data ? `Всього: ${data.total}` : "Завантаження..."}
+            </p>
+            <p className="text-red-500 text-sm mt-2 font-mono">
+              🔍 Debug: salonId = {salonId || "NULL"}
             </p>
           </div>
           <AddClientModal 
