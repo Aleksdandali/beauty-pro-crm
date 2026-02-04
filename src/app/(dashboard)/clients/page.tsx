@@ -1,389 +1,289 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { AddClientModal } from "@/components/AddClientModal";
+import { Plus, X, Search } from "lucide-react";
 
-// Types
-type RFMSegment = "VIP" | "Loyal" | "Regular" | "Sleeping" | "Lost" | "New";
+// ⚠️ SALON_ID з бази даних
+const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
-interface Client {
+type Client = {
   id: string;
   full_name: string;
   phone: string;
   instagram: string | null;
-  rfm_segment: RFMSegment;
+  telegram: string | null;
+  notes: string | null;
+  rfm_segment: string;
   total_visits: number;
   total_spent: number;
-}
-
-interface ClientsResponse {
-  data: Client[];
-  total: number;
-}
-
-// Fetch clients with filters
-async function fetchClients(
-  page: number,
-  pageSize: number,
-  searchQuery: string,
-  rfmFilter: RFMSegment | "all"
-): Promise<ClientsResponse> {
-  const supabase = createClient();
-  
-  // Перевірка автентифікації
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    console.error("Auth error:", authError);
-    throw new Error("Not authenticated");
-  }
-  
-  console.log("✅ User authenticated:", user.id);
-  
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
-
-  let query = supabase
-    .from("clients")
-    .select("id, full_name, phone, instagram, rfm_segment, total_visits, total_spent", {
-      count: "exact",
-    })
-    .order("created_at", { ascending: false })
-    .range(from, to);
-
-  // Search filter
-  if (searchQuery) {
-    query = query.or(`full_name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
-  }
-
-  // RFM filter
-  if (rfmFilter !== "all") {
-    query = query.eq("rfm_segment", rfmFilter);
-  }
-
-  const { data, error, count } = await query;
-
-  if (error) {
-    console.error("Fetch error:", error);
-    throw error;
-  }
-
-  return {
-    data: data || [],
-    total: count || 0,
-  };
-}
-
-// RFM Segment Badge
-function RFMBadge({ segment }: { segment: RFMSegment }) {
-  const colors: Record<RFMSegment, string> = {
-    VIP: "bg-purple-100 text-purple-800 border-purple-200",
-    Loyal: "bg-blue-100 text-blue-800 border-blue-200",
-    Regular: "bg-green-100 text-green-800 border-green-200",
-    Sleeping: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    Lost: "bg-red-100 text-red-800 border-red-200",
-    New: "bg-gray-100 text-gray-800 border-gray-200",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-        colors[segment]
-      }`}
-    >
-      {segment}
-    </span>
-  );
-}
+  created_at: string;
+};
 
 export default function ClientsPage() {
-  // State
-  const [page, setPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [rfmFilter, setRFMFilter] = useState<RFMSegment | "all">("all");
-  // Temporary hardcoded salon_id for testing
-  const [salonId, setSalonId] = useState<string | null>("a1b2c3d4-e5f6-7890-abcd-ef1234567890");
-  const pageSize = 20;
-
-  // Get current user's salon_id
-  useEffect(() => {
-    async function getSalonId() {
-      const supabase = createClient();
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      console.log("User:", user);
-      console.log("User Error:", userError);
-      
-      if (user) {
-        const { data: staff, error: staffError } = await supabase
-          .from("staff")
-          .select("salon_id")
-          .eq("user_id", user.id)
-          .single() as { data: { salon_id: string } | null; error: any };
-        
-        console.log("Staff:", staff);
-        console.log("Staff Error:", staffError);
-        console.log("SalonId:", staff?.salon_id);
-        
-        if (staff?.salon_id) {
-          setSalonId(staff.salon_id);
-          console.log("✅ SalonId set successfully:", staff.salon_id);
-        } else {
-          console.error("❌ No salon_id found for user");
-        }
-      } else {
-        console.error("❌ No user found");
-      }
-    }
-    getSalonId();
-  }, []);
-
-  // Query
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["clients", page, searchQuery, rfmFilter],
-    queryFn: () => fetchClients(page, pageSize, searchQuery, rfmFilter),
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  
+  const [form, setForm] = useState({
+    full_name: "",
+    phone: "",
+    instagram: "",
+    telegram: "",
+    notes: "",
   });
 
-  const totalPages = data ? Math.ceil(data.total / pageSize) : 0;
+  // Завантаження клієнтів
+  const loadClients = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("salon_id", SALON_ID)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setClients(data || []);
+    }
+    setLoading(false);
+  };
+
+  // Завантажити при першому рендері
+  useEffect(() => {
+    loadClients();
+  }, []);
+
+  // Додати клієнта
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.from("clients").insert({
+      salon_id: SALON_ID,
+      full_name: form.full_name,
+      phone: form.phone,
+      instagram: form.instagram || null,
+      telegram: form.telegram || null,
+      notes: form.notes || null,
+      rfm_segment: "New",
+      total_visits: 0,
+      total_spent: 0,
+    });
+
+    if (error) {
+      alert("Помилка: " + error.message);
+    } else {
+      setShowModal(false);
+      setForm({ full_name: "", phone: "", instagram: "", telegram: "", notes: "" });
+      loadClients();
+    }
+    setSaving(false);
+  };
+
+  // Фільтрація по пошуку
+  const filtered = clients.filter(
+    (c) =>
+      c.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      c.phone.includes(search)
+  );
+
+  // Колір для RFM сегменту
+  const rfmColor = (segment: string) => {
+    const colors: Record<string, string> = {
+      VIP: "bg-yellow-100 text-yellow-800",
+      Loyal: "bg-green-100 text-green-800",
+      Regular: "bg-blue-100 text-blue-800",
+      Sleeping: "bg-orange-100 text-orange-800",
+      Lost: "bg-red-100 text-red-800",
+      New: "bg-gray-100 text-gray-800",
+    };
+    return colors[segment] || "bg-gray-100 text-gray-800";
+  };
 
   return (
-    <div className="min-h-screen bg-white p-6 md:p-8">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-black tracking-tight">Клієнти</h1>
-            <p className="text-zinc-600 mt-1">
-              {data ? `Всього: ${data.total}` : "Завантаження..."}
-            </p>
-            <p className="text-red-500 text-sm mt-2 font-mono">
-              🔍 Debug: salonId = {salonId || "NULL"}
-            </p>
-          </div>
-          <AddClientModal 
-            salonId={salonId || ""}
-            trigger={
-              <button 
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-black hover:bg-zinc-800 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!salonId}
-              >
-                <Plus className="w-4 h-4" />
-                Додати клієнта
-              </button>
-            }
-          />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Клієнти</h1>
+          <p className="text-gray-500">{clients.length} клієнтів</p>
         </div>
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
-            <input
-              type="text"
-              placeholder="Пошук по імені або телефону..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1); // Reset to first page
-              }}
-              className="w-full pl-10 pr-4 py-2.5 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm"
-            />
-          </div>
-
-          {/* RFM Filter */}
-          <select
-            value={rfmFilter}
-            onChange={(e) => {
-              setRFMFilter(e.target.value as RFMSegment | "all");
-              setPage(1); // Reset to first page
-            }}
-            className="px-4 py-2.5 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent text-sm bg-white"
-          >
-            <option value="all">Всі сегменти</option>
-            <option value="VIP">VIP</option>
-            <option value="Loyal">Лояльні</option>
-            <option value="Regular">Регулярні</option>
-            <option value="Sleeping">Сплячі</option>
-            <option value="Lost">Втрачені</option>
-            <option value="New">Нові</option>
-          </select>
-        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-colors font-medium"
+        >
+          <Plus size={18} />
+          Додати клієнта
+        </button>
       </div>
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-zinc-600">Завантаження...</div>
-        </div>
-      )}
+      {/* Пошук */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input
+          type="text"
+          placeholder="Пошук по імені або телефону..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+        />
+      </div>
 
-      {/* Error */}
+      {/* Стан */}
+      {loading && <p className="text-center py-12 text-gray-500">Завантаження...</p>}
       {error && (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-red-600">
-            Помилка: {error instanceof Error ? error.message : "Не вдалося завантажити дані"}
-          </div>
+        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg mb-4">
+          Помилка: {error}
+          <button onClick={loadClients} className="ml-4 underline">Спробувати знову</button>
         </div>
       )}
 
-      {/* Table (Desktop) */}
-      {!isLoading && !error && data && (
-        <>
-          <div className="hidden md:block bg-white border border-zinc-200 rounded-lg overflow-hidden shadow-sm">
-            <table className="w-full">
-              <thead className="bg-zinc-50 border-b border-zinc-200">
+      {/* Таблиця */}
+      {!loading && !error && (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Ім'я</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Телефон</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden md:table-cell">Instagram</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden md:table-cell">Сегмент</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden lg:table-cell">Візитів</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden lg:table-cell">Витрачено</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                    Ім'я
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                    Телефон
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                    Instagram
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                    RFM-сегмент
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                    Візитів
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-900 uppercase tracking-wider">
-                    Витрачено
-                  </th>
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                    {search ? "Нічого не знайдено" : "Немає клієнтів. Додайте першого!"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-zinc-100">
-                {data.data.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
-                      {searchQuery || rfmFilter !== "all"
-                        ? "Клієнтів не знайдено"
-                        : "Ще немає клієнтів"}
+              ) : (
+                filtered.map((client) => (
+                  <tr key={client.id} className="border-b hover:bg-gray-50 cursor-pointer">
+                    <td className="px-4 py-3 font-medium">{client.full_name}</td>
+                    <td className="px-4 py-3 text-gray-600">{client.phone}</td>
+                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                      {client.instagram ? `@${client.instagram}` : "—"}
                     </td>
-                  </tr>
-                ) : (
-                  data.data.map((client) => (
-                    <tr
-                      key={client.id}
-                      className="hover:bg-zinc-50 transition-colors cursor-pointer"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-zinc-900">
-                          {client.full_name}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-zinc-600">{client.phone}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-zinc-600">
-                          {client.instagram ? (
-                            <a
-                              href={`https://instagram.com/${client.instagram.replace("@", "")}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline"
-                            >
-                              {client.instagram}
-                            </a>
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <RFMBadge segment={client.rfm_segment} />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-zinc-900">{client.total_visits}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-zinc-900">
-                          ₴{client.total_spent.toFixed(2)}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-4">
-            {data.data.length === 0 ? (
-              <div className="text-center py-12 text-zinc-500">
-                {searchQuery || rfmFilter !== "all"
-                  ? "Клієнтів не знайдено"
-                  : "Ще немає клієнтів"}
-              </div>
-            ) : (
-              data.data.map((client) => (
-                <div
-                  key={client.id}
-                  className="bg-white border border-zinc-200 rounded-lg p-4 shadow-sm"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-zinc-900">
-                        {client.full_name}
-                      </h3>
-                      <p className="text-sm text-zinc-600 mt-1">{client.phone}</p>
-                      {client.instagram && (
-                        <p className="text-sm text-blue-600 mt-1">{client.instagram}</p>
-                      )}
-                    </div>
-                    <RFMBadge segment={client.rfm_segment} />
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-zinc-100">
-                    <div className="text-sm">
-                      <span className="text-zinc-500">Візитів:</span>{" "}
-                      <span className="font-semibold text-zinc-900">{client.total_visits}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-zinc-500">Витрачено:</span>{" "}
-                      <span className="font-semibold text-zinc-900">
-                        ₴{client.total_spent.toFixed(2)}
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${rfmColor(client.rfm_segment)}`}>
+                        {client.rfm_segment}
                       </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">{client.total_visits}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">₴{client.total_spent}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-zinc-600">
-                Сторінка {page} з {totalPages}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="inline-flex items-center gap-1 px-3 py-2 border border-zinc-200 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Назад
-                </button>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="inline-flex items-center gap-1 px-3 py-2 border border-zinc-200 rounded-lg text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Вперед
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+      {/* Модалка */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Новий клієнт</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-black">
+                <X size={20} />
+              </button>
             </div>
-          )}
-        </>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ім'я <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={form.full_name}
+                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Олена Петренко"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Телефон <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="+380501234567"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                  <input
+                    type="text"
+                    value={form.instagram}
+                    onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                    placeholder="username"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telegram</label>
+                  <input
+                    type="text"
+                    value={form.telegram}
+                    onChange={(e) => setForm({ ...form, telegram: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                    placeholder="username"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Нотатки</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                  rows={3}
+                  placeholder="Алергії, побажання..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg font-medium hover:bg-gray-50"
+                >
+                  Скасувати
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {saving ? "Зберігаю..." : "Додати"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
