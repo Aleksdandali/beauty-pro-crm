@@ -7,6 +7,9 @@ import "../globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default async function LocaleLayout({
   children,
   params,

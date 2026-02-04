@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
   // Unwrap async params in Next.js 16
   const { locale } = use(params);

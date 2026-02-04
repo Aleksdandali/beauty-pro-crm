@@ -5,6 +5,9 @@ import { Header } from "@/components/features/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Users, DollarSign, Briefcase } from "lucide-react";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
 
