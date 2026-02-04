@@ -8,8 +8,8 @@ import Link from "next/link";
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-export default function SignUpPage({ params }: { params: { locale: string } }) {
-  const { locale } = params;
+export default function SignUpPage() {
+  const locale = 'uk'; // Default locale for root pages
   
   const router = useRouter();
   const [email, setEmail] = useState("");
