@@ -9,6 +9,70 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      shops: {
+        Row: {
+          id: string;
+          name: string;
+          address: string | null;
+          phone: string | null;
+          email: string | null;
+          owner_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          owner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          owner_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          phone: string | null;
+          role: 'owner' | 'admin' | 'master' | 'client';
+          shop_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          phone?: string | null;
+          role?: 'owner' | 'admin' | 'master' | 'client';
+          shop_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          avatar_url?: string | null;
+          phone?: string | null;
+          role?: 'owner' | 'admin' | 'master' | 'client';
+          shop_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       salons: {
         Row: {
           id: string;
@@ -351,7 +415,12 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_profile_if_not_exists: {
+        Args: {
+          p_full_name: string;
+        };
+        Returns: Database['public']['Tables']['profiles']['Row'];
+      };
     };
     Enums: {
       [_ in never]: never;

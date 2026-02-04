@@ -46,7 +46,17 @@ export default function LoginPage() {
 
     console.log("✅ Sign in successful:", data.user.email);
 
-    // Step 2: Redirect to dashboard with locale (OUTSIDE try/catch)
+    // Step 2: Ensure profile exists (create if missing)
+    try {
+      await supabase.rpc('create_profile_if_not_exists', {
+        p_full_name: data.user.user_metadata?.full_name || data.user.email || ''
+      });
+      console.log("✅ Profile check completed");
+    } catch (profileErr) {
+      console.warn("⚠️ Profile check failed (non-critical):", profileErr);
+    }
+
+    // Step 3: Redirect to dashboard with locale (OUTSIDE try/catch)
     console.log(`→ Redirecting to /${locale}/dashboard`);
     router.push(`/${locale}/dashboard`);
     router.refresh();

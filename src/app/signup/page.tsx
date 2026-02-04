@@ -55,6 +55,21 @@ export default function SignUpPage() {
 
     console.log("✅ Sign up successful:", data.user.email);
     
+    // Step 2: Create user profile via RPC
+    try {
+      const { data: profile, error: profileError } = await supabase.rpc('create_profile_if_not_exists', {
+        p_full_name: fullName || ''
+      });
+      
+      if (profileError) {
+        console.warn("⚠️ Profile creation warning:", profileError);
+      } else {
+        console.log("✅ Profile created:", profile);
+      }
+    } catch (profileErr) {
+      console.warn("⚠️ Profile creation failed (non-critical):", profileErr);
+    }
+    
     // Check if email confirmation is required
     if (data.session) {
       // User is automatically signed in (email confirmation disabled)
