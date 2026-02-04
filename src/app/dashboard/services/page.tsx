@@ -8,7 +8,7 @@ import {
   Tag, Filter
 } from "lucide-react";
 
-const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"; // Заміни на реальний
+const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
 type Service = {
   id: string;
