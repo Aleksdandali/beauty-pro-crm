@@ -69,6 +69,7 @@ export default function ClientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [filterSegment, setFilterSegment] = useState<string>("all");
@@ -143,6 +144,45 @@ export default function ClientsPage() {
       setSelectedClient(null);
       loadClients();
     }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingClient) return;
+    setSaving(true);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("clients")
+      .update({
+        full_name: form.full_name,
+        phone: form.phone,
+        instagram: form.instagram || null,
+        telegram: form.telegram || null,
+        notes: form.notes || null,
+      })
+      .eq("id", editingClient.id);
+
+    if (error) {
+      alert("Помилка: " + error.message);
+    } else {
+      setEditingClient(null);
+      setSelectedClient(null);
+      setForm({ full_name: "", phone: "", instagram: "", telegram: "", notes: "" });
+      loadClients();
+    }
+    setSaving(false);
+  };
+
+  const openEditModal = (client: Client) => {
+    setForm({
+      full_name: client.full_name,
+      phone: client.phone,
+      instagram: client.instagram || "",
+      telegram: client.telegram || "",
+      notes: client.notes || "",
+    });
+    setEditingClient(client);
   };
 
   // Фільтрація
@@ -469,6 +509,108 @@ export default function ClientsPage() {
           </div>
         )}
 
+        {/* Edit Client Modal */}
+        {editingClient && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Редагувати клієнта</h2>
+                  <p className="text-sm text-gray-500">{editingClient.full_name}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setEditingClient(null);
+                    setForm({ full_name: "", phone: "", instagram: "", telegram: "", notes: "" });
+                  }} 
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} className="text-gray-400" />
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Повне ім'я <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.full_name}
+                    onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Телефон <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Instagram</label>
+                    <input
+                      type="text"
+                      value={form.instagram}
+                      onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Telegram</label>
+                    <input
+                      type="text"
+                      value={form.telegram}
+                      onChange={(e) => setForm({ ...form, telegram: e.target.value })}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Нотатки</label>
+                  <textarea
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingClient(null);
+                      setForm({ full_name: "", phone: "", instagram: "", telegram: "", notes: "" });
+                    }}
+                    className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                  >
+                    Скасувати
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 px-4 py-2.5 bg-black text-white rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                  >
+                    {saving ? "Зберігаю..." : "Зберегти"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Client Detail Slide-over */}
         {selectedClient && (
           <div className="fixed inset-0 z-50">
@@ -570,7 +712,10 @@ export default function ClientsPage() {
                       <Calendar size={18} />
                       Записати
                     </button>
-                    <button className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200">
+                    <button 
+                      onClick={() => openEditModal(selectedClient)}
+                      className="p-2.5 bg-gray-100 rounded-xl hover:bg-gray-200"
+                    >
                       <Edit size={18} className="text-gray-600" />
                     </button>
                     <button 
