@@ -7,6 +7,8 @@ import {
   Calendar, Edit, Trash2, UserPlus, Users, TrendingUp,
   ChevronRight, Star, Clock
 } from "lucide-react";
+import { AddClientModal } from "@/components/clients/AddClientModal";
+import { Toaster } from "@/components/ui/toaster";
 
 const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -67,7 +69,6 @@ export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [saving, setSaving] = useState(false);
@@ -104,33 +105,6 @@ export default function ClientsPage() {
   useEffect(() => {
     loadClients();
   }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-
-    const supabase = createClient();
-    const { error } = await supabase.from("clients").insert({
-      salon_id: SALON_ID,
-      full_name: form.full_name,
-      phone: form.phone,
-      instagram: form.instagram || null,
-      telegram: form.telegram || null,
-      notes: form.notes || null,
-      rfm_segment: "New",
-      total_visits: 0,
-      total_spent: 0,
-    });
-
-    if (error) {
-      alert("Помилка: " + error.message);
-    } else {
-      setShowAddModal(false);
-      setForm({ full_name: "", phone: "", instagram: "", telegram: "", notes: "" });
-      loadClients();
-    }
-    setSaving(false);
-  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Видалити клієнта?")) return;
@@ -220,13 +194,10 @@ export default function ClientsPage() {
                 Управляйте базою клієнтів вашого салону
               </p>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all font-medium shadow-sm hover:shadow-md"
-            >
-              <UserPlus size={18} />
-              Додати клієнта
-            </button>
+            <AddClientModal 
+              salonId={SALON_ID}
+              onSuccess={loadClients}
+            />
           </div>
 
           {/* Stats Cards */}
@@ -324,13 +295,16 @@ export default function ClientsPage() {
                     : "Додайте першого клієнта, щоб почати роботу"}
                 </p>
                 {!search && filterSegment === "all" && (
-                  <button
-                    onClick={() => setShowAddModal(true)}
-                    className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg"
-                  >
-                    <Plus size={18} />
-                    Додати клієнта
-                  </button>
+                  <AddClientModal 
+                    salonId={SALON_ID}
+                    onSuccess={loadClients}
+                    trigger={
+                      <button className="inline-flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg">
+                        <Plus size={18} />
+                        Додати клієнта
+                      </button>
+                    }
+                  />
                 )}
               </div>
             ) : (
@@ -399,113 +373,6 @@ export default function ClientsPage() {
                 </tbody>
               </table>
             )}
-          </div>
-        )}
-
-        {/* Add Client Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Новий клієнт</h2>
-                  <p className="text-sm text-gray-500">Заповніть інформацію про клієнта</p>
-                </div>
-                <button 
-                  onClick={() => setShowAddModal(false)} 
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X size={20} className="text-gray-400" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Повне ім'я <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={form.full_name}
-                    onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
-                    placeholder="Олена Петренко"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Телефон <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
-                    placeholder="+380 67 123 4567"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Instagram</label>
-                    <div className="relative">
-                      <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                      <input
-                        type="text"
-                        value={form.instagram}
-                        onChange={(e) => setForm({ ...form, instagram: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
-                        placeholder="username"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Telegram</label>
-                    <div className="relative">
-                      <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                      <input
-                        type="text"
-                        value={form.telegram}
-                        onChange={(e) => setForm({ ...form, telegram: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
-                        placeholder="username"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Нотатки</label>
-                  <textarea
-                    value={form.notes}
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black resize-none"
-                    rows={3}
-                    placeholder="Алергії, побажання, особливості..."
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    Скасувати
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="flex-1 px-4 py-2.5 bg-black text-white rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
-                  >
-                    {saving ? "Зберігаю..." : "Додати клієнта"}
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
         )}
 
@@ -732,6 +599,7 @@ export default function ClientsPage() {
         )}
 
       </div>
+      <Toaster />
     </div>
   );
 }
