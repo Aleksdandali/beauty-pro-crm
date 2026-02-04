@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 10 10 10;
+    --card: 255 255 255;
+    --card-foreground: 10 10 10;
+    --border: 229 231 235;
+    --input: 229 231 235;
+    --ring: 139 92 246;
+    --accent: 139 92 246;
+  }
+
+  .dark {
+    --background: 10 10 10;
+    --foreground: 255 255 255;
+    --card: 17 17 17;
+    --card-foreground: 255 255 255;
+    --border: 255 255 255 / 0.1;
+    --input: 255 255 255 / 0.1;
+    --ring: 139 92 246;
+    --accent: 139 92 246;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-white/10 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-white/20;
+}
+
+::selection {
+  @apply bg-violet-500/30;
+}
