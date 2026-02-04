@@ -64,33 +64,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4 py-12">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white rounded-lg border border-zinc-200 p-8">
+        <div className="bg-white rounded-xl border border-zinc-200 p-8 shadow-sm">
           {/* Logo/Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center">
-                <span className="text-white text-lg font-bold">💅</span>
+            <div className="flex items-center gap-2 mb-8">
+              <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center">
+                <span className="text-white text-xl">💅</span>
               </div>
-              <span className="text-black font-semibold text-sm">Beauty Pro CRM</span>
+              <span className="text-black font-bold text-base">Beauty Pro CRM</span>
             </div>
-            <h1 className="text-2xl font-bold text-black tracking-tight mb-2">
+            <h1 className="text-3xl font-bold text-black tracking-tight mb-3">
               Welcome back
             </h1>
             <p className="text-sm text-zinc-600">
-              Sign in to your account
+              Sign in to your account to continue
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={handleSignIn} className="space-y-5">
             {/* Email */}
             <div>
               <label 
                 htmlFor="email" 
-                className="block text-sm font-medium text-zinc-600 mb-2"
+                className="block text-sm font-semibold text-zinc-700 mb-2"
               >
                 Email
               </label>
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-md text-black placeholder-zinc-400 text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-300 rounded-lg text-black placeholder-zinc-400 text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               />
             </div>
 
@@ -110,7 +110,7 @@ export default function LoginPage() {
             <div>
               <label 
                 htmlFor="password" 
-                className="block text-sm font-medium text-zinc-600 mb-2"
+                className="block text-sm font-semibold text-zinc-700 mb-2"
               >
                 Password
               </label>
@@ -123,14 +123,14 @@ export default function LoginPage() {
                 required
                 minLength={6}
                 disabled={isLoading}
-                className="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-md text-black placeholder-zinc-400 text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full px-4 py-3 bg-zinc-50 border border-zinc-300 rounded-lg text-black placeholder-zinc-400 text-sm focus:outline-none focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               />
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600 font-medium">{error}</p>
               </div>
             )}
 
@@ -138,19 +138,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-2 bg-black hover:bg-zinc-800 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3.5 bg-black hover:bg-zinc-800 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md mt-6"
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
           {/* Register Link */}
-          <div className="mt-6 text-center">
+          <div className="mt-8 pt-6 border-t border-zinc-200 text-center">
             <p className="text-sm text-zinc-600">
               Don&apos;t have an account?{" "}
               <Link 
                 href="/signup"
-                className="text-black font-medium hover:underline transition-all"
+                className="text-black font-semibold hover:underline transition-all"
               >
                 Sign up
               </Link>
@@ -159,7 +159,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-zinc-400 mt-6">
+        <p className="text-center text-xs text-zinc-500 mt-8">
           Protected by industry-standard encryption
         </p>
       </div>
