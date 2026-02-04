@@ -168,11 +168,14 @@ export interface Database {
         Row: {
           id: string;
           salon_id: string;
-          name: string;
+          full_name: string;
           email: string | null;
           phone: string;
           birthday: string | null;
           notes: string | null;
+          instagram: string | null;
+          rfm_segment: "VIP" | "Loyal" | "Regular" | "Sleeping" | "Lost" | "New";
+          discount_percent: number | null;
           total_visits: number;
           total_spent: number;
           last_visit: string | null;
@@ -182,11 +185,14 @@ export interface Database {
         Insert: {
           id?: string;
           salon_id: string;
-          name: string;
+          full_name: string;
           email?: string | null;
           phone: string;
           birthday?: string | null;
           notes?: string | null;
+          instagram?: string | null;
+          rfm_segment?: "VIP" | "Loyal" | "Regular" | "Sleeping" | "Lost" | "New";
+          discount_percent?: number | null;
           total_visits?: number;
           total_spent?: number;
           last_visit?: string | null;
@@ -196,11 +202,14 @@ export interface Database {
         Update: {
           id?: string;
           salon_id?: string;
-          name?: string;
+          full_name?: string;
           email?: string | null;
           phone?: string;
           birthday?: string | null;
           notes?: string | null;
+          instagram?: string | null;
+          rfm_segment?: "VIP" | "Loyal" | "Regular" | "Sleeping" | "Lost" | "New";
+          discount_percent?: number | null;
           total_visits?: number;
           total_spent?: number;
           last_visit?: string | null;

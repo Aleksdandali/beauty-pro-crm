@@ -8,11 +8,12 @@ interface Client {
   id: string;
   created_at: string;
   salon_id: string;
-  name: string;
+  full_name: string;
   phone: string;
   email: string | null;
   notes: string | null;
   birthday: string | null;
+  discount_percent: number | null;
   total_visits: number;
   total_spent: number;
   last_visit: string | null;
@@ -152,7 +153,7 @@ export default function ClientsPage() {
                 {clients.map((client) => (
                   <tr key={client.id} className="hover:bg-zinc-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-zinc-900 text-sm">{client.name}</div>
+                      <div className="font-medium text-zinc-900 text-sm">{client.full_name}</div>
                       {client.notes && (
                         <div className="text-xs text-zinc-500 mt-1 truncate max-w-xs">{client.notes}</div>
                       )}
@@ -184,7 +185,7 @@ export default function ClientsPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="font-semibold text-zinc-900 text-sm mb-1">
-                      {client.name}
+                      {client.full_name}
                     </div>
                     <div className="text-xs text-zinc-600 mb-1">📱 {client.phone}</div>
                     {client.email && (
