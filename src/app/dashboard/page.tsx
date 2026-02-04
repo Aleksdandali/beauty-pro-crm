@@ -1,12 +1,12 @@
 export default function DashboardPage() {
   return (
     <div>
-      {/* Header - Hidden on Mobile (shown in tabs) */}
-      <div className="mb-6 md:mb-8 hidden md:block">
+      {/* Desktop Header */}
+      <div className="mb-8 hidden md:block">
         <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">
           Overview
         </h1>
-        <p className="text-sm text-zinc-500">Welcome back! Here's your salon performance</p>
+        <p className="text-base text-zinc-600">Welcome back! Here's your salon performance</p>
       </div>
 
       {/* Mobile Title */}

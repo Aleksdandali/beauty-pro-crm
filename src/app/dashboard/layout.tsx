@@ -90,19 +90,27 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
-        {/* Mobile & Desktop Header */}
+        {/* Header */}
         <header className="bg-white border-b border-zinc-200">
-          {/* Top Bar - Logo & User */}
+          {/* Mobile: Logo & User | Desktop: Breadcrumbs & User */}
           <div className="flex items-center justify-between px-4 md:px-6 h-14">
-            <div className="flex items-center gap-2">
+            {/* Mobile Logo - Hidden on Desktop */}
+            <div className="flex items-center gap-2 md:hidden">
               <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                 <span className="text-white text-lg">💅</span>
               </div>
               <span className="text-black font-bold text-base">Beauty Pro CRM</span>
             </div>
+
+            {/* Desktop Breadcrumbs - Hidden on Mobile */}
+            <div className="hidden md:block text-sm text-zinc-500">
+              Home <span className="mx-2">/</span> <span className="text-zinc-900 font-medium">Dashboard</span>
+            </div>
+
+            {/* User Info */}
             {userEmail && (
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline text-sm text-zinc-600">{userEmail}</span>
+              <div className="flex items-center gap-3">
+                <span className="hidden md:inline text-sm text-zinc-600">{userEmail}</span>
                 <div className="w-8 h-8 bg-zinc-200 rounded-full flex items-center justify-center text-sm">
                   👤
                 </div>
