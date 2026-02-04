@@ -44,11 +44,11 @@ export default function SignUpPage() {
       // Check if email confirmation is required
       if (data.session) {
         // User is automatically signed in (email confirmation disabled)
-        console.log("→ Email confirmation disabled, redirecting to onboarding");
+        console.log("→ Email confirmation disabled, redirecting to dashboard");
         setSuccess(true);
         
         setTimeout(() => {
-          router.push("/uk/onboarding");
+          router.push("/uk/dashboard");
           router.refresh();
         }, 1500);
       } else {
@@ -77,7 +77,7 @@ export default function SignUpPage() {
               Account Created!
             </h2>
             <p className="text-zinc-600 mb-4">
-              Redirecting to complete your salon setup...
+              Redirecting to dashboard...
             </p>
             <div className="flex items-center justify-center">
               <svg className="animate-spin h-5 w-5 text-black" viewBox="0 0 24 24">

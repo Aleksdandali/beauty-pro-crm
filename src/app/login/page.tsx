@@ -42,17 +42,9 @@ export default function LoginPage() {
         console.error("❌ Staff check error:", staffError);
       }
 
-      // Step 3: Redirect based on staff record
-      if (!staffRecord) {
-        // No staff record → redirect to onboarding
-        console.log("→ Redirecting to onboarding (no staff record)");
-        router.push("/uk/onboarding");
-      } else {
-        // Has staff record → redirect to dashboard
-        console.log("→ Redirecting to dashboard");
-        router.push("/dashboard");
-      }
-      
+      // Step 3: Redirect to dashboard
+      console.log("→ Redirecting to dashboard");
+      router.push("/uk/dashboard");
       router.refresh();
     } catch (err: any) {
       console.error("❌ Sign in error:", err);
