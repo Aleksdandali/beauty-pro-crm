@@ -70,6 +70,7 @@ export async function middleware(request: NextRequest) {
     "/login",
     "/signup",
     "/forgot-password",
+    "/test-login",
   ];
 
   const isPublicRoute = publicRoutes.includes(pathname);
