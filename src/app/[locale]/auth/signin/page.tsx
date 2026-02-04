@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
-export default function SignInPage({ params }: { params: any }) {
-  const { locale } = params;
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
+export default function SignInPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(params);
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
