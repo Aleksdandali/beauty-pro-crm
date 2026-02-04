@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -8,8 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-export default function SignUpPage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = use(params);
+export default function SignUpPage({ params }: { params: { locale: string } }) {
+  const { locale } = params;
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

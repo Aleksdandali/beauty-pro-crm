@@ -1,9 +1,9 @@
-export default async function HomePage({
+export default function HomePage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: { locale: string };
 }) {
-  const { locale } = await params;
+  const { locale } = params;
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-zinc-50">
@@ -48,7 +48,7 @@ export default async function HomePage({
           </a>
           
           <p className="text-xs text-zinc-400">
-            Локалізація: UK/EN • База: Supabase • Framework: Next.js 16
+            Локалізація: UK/EN • База: Supabase • Framework: Next.js 14
           </p>
         </div>
       </div>

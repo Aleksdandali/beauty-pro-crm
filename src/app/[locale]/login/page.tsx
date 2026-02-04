@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -8,9 +8,8 @@ import Link from "next/link";
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
-export default function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
-  // Unwrap async params in Next.js 16
-  const { locale } = use(params);
+export default function LoginPage({ params }: { params: { locale: string } }) {
+  const { locale } = params;
   
   const router = useRouter();
   const [email, setEmail] = useState("");
