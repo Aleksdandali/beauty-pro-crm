@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
-export default function SignUpPage({ params }: { params: { locale: string } }) {
+export default function SignUpPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Unwrap async params in Next.js 16
+  const { locale } = use(params);
+  
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,12 +29,12 @@ export default function SignUpPage({ params }: { params: { locale: string } }) {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/${locale}/dashboard`,
         },
-        emailRedirectTo: `${window.location.origin}/${params.locale}/dashboard`,
-      },
     });
 
     // Handle errors
@@ -53,12 +56,12 @@ export default function SignUpPage({ params }: { params: { locale: string } }) {
     // Check if email confirmation is required
     if (data.session) {
       // User is automatically signed in (email confirmation disabled)
-      console.log(`→ Email confirmation disabled, redirecting to /${params.locale}/dashboard`);
+      console.log(`→ Email confirmation disabled, redirecting to /${locale}/dashboard`);
       setSuccess(true);
       
       // Redirect OUTSIDE any async error handling
       setTimeout(() => {
-        router.push(`/${params.locale}/dashboard`);
+        router.push(`/${locale}/dashboard`);
         router.refresh();
       }, 1500);
     } else {
@@ -200,7 +203,7 @@ export default function SignUpPage({ params }: { params: { locale: string } }) {
             <p className="text-sm text-zinc-500">
               Already have an account?{" "}
               <Link 
-                href={`/${params.locale}/login`}
+                href={`/${locale}/login`}
                 className="font-medium text-black hover:underline"
               >
                 Sign in

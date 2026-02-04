@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
-export default function LoginPage({ params }: { params: { locale: string } }) {
+export default function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
+  // Unwrap async params in Next.js 16
+  const { locale } = use(params);
+  
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,8 +45,8 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
     console.log("✅ Sign in successful:", data.user.email);
 
     // Step 2: Redirect to dashboard with locale (OUTSIDE try/catch)
-    console.log(`→ Redirecting to /${params.locale}/dashboard`);
-    router.push(`/${params.locale}/dashboard`);
+    console.log(`→ Redirecting to /${locale}/dashboard`);
+    router.push(`/${locale}/dashboard`);
     router.refresh();
   };
 
@@ -97,7 +100,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
                   Password
                 </label>
                 <Link 
-                  href={`/${params.locale}/forgot-password`}
+                  href={`/${locale}/forgot-password`}
                   className="text-xs text-zinc-500 hover:text-black transition"
                 >
                   Forgot password?
@@ -147,7 +150,7 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
             <p className="text-sm text-zinc-500">
               Don&apos;t have an account?{" "}
               <Link 
-                href={`/${params.locale}/signup`}
+                href={`/${locale}/signup`}
                 className="font-medium text-black hover:underline"
               >
                 Sign up
