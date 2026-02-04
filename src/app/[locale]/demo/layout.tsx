@@ -36,7 +36,7 @@ export default function DemoLayout({
               </span>
             </div>
             <div className="text-sm text-zinc-600">
-              🎨 Салон "Шарм" • Олена Власник
+              🎨 Салон &ldquo;Шарм&rdquo; • Олена Власник
             </div>
           </div>
         </div>
