@@ -118,6 +118,9 @@ export default function ClientsPage() {
     return colors[segment] || "bg-gray-100 text-gray-800";
   };
 
+  // Дебаг інфо
+  const debugInfo = `Clients: ${clients.length}, Loading: ${loading}, Error: ${error || 'none'}`;
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -135,6 +138,11 @@ export default function ClientsPage() {
         </button>
       </div>
 
+      {/* DEBUG INFO */}
+      <p className="text-xs text-red-500 bg-red-50 p-2 rounded mb-4">
+        DEBUG: {debugInfo} | SALON_ID: {SALON_ID}
+      </p>
+
       {/* Пошук */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -148,7 +156,12 @@ export default function ClientsPage() {
       </div>
 
       {/* Стан */}
-      {loading && <p className="text-center py-12 text-gray-500">Завантаження...</p>}
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Завантаження...</p>
+          <p className="text-xs text-red-500 mt-2">SALON_ID: {SALON_ID}</p>
+        </div>
+      )}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg mb-4">
           Помилка: {error}
