@@ -1,8 +1,21 @@
+import createMiddleware from 'next-intl/middleware';
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
+// next-intl middleware configuration
+const intlMiddleware = createMiddleware({
+  locales: ['uk', 'en'],
+  defaultLocale: 'uk',
+  localePrefix: 'as-needed'
+});
+
 export async function middleware(request: NextRequest) {
+  // First, run next-intl middleware for locale handling
+  const intlResponse = intlMiddleware(request);
+  if (intlResponse) {
+    return intlResponse;
+  }
   let response = NextResponse.next({
     request: {
       headers: request.headers,
