@@ -3,176 +3,141 @@ export default function DashboardPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-100 mb-2">
-          Dashboard
+        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">
+          Overview
         </h1>
-        <p className="text-sm text-zinc-400">Welcome back! Here's your salon overview</p>
+        <p className="text-sm text-zinc-500">Welcome back! Here's your salon performance</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-2xl">👥</div>
-            <div className="text-emerald-500 text-xs font-medium">+12%</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-zinc-500">Total Revenue</div>
           </div>
-          <div className="text-2xl font-bold text-zinc-100 mb-1">248</div>
-          <div className="text-sm text-zinc-400">Total Clients</div>
+          <div className="text-3xl font-bold text-zinc-900 mb-1">₴ 0.00</div>
+          <div className="text-xs text-zinc-500">Last 30 days</div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-2xl">📅</div>
-            <div className="text-blue-400 text-xs font-medium">Today</div>
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-zinc-500">Active Clients</div>
           </div>
-          <div className="text-2xl font-bold text-zinc-100 mb-1">12</div>
-          <div className="text-sm text-zinc-400">Appointments</div>
+          <div className="text-3xl font-bold text-zinc-900 mb-1">0</div>
+          <div className="text-xs text-zinc-500">Registered users</div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-2xl">💰</div>
-            <div className="text-emerald-500 text-xs font-medium">+8%</div>
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-zinc-500">Appointments</div>
           </div>
-          <div className="text-2xl font-bold text-zinc-100 mb-1">₴45,800</div>
-          <div className="text-sm text-zinc-400">Revenue</div>
-        </div>
-
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-2xl">📦</div>
-            <div className="text-orange-400 text-xs font-medium">Low Stock</div>
-          </div>
-          <div className="text-2xl font-bold text-zinc-100 mb-1">89</div>
-          <div className="text-sm text-zinc-400">Products</div>
+          <div className="text-3xl font-bold text-zinc-900 mb-1">0</div>
+          <div className="text-xs text-zinc-500">This month</div>
         </div>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Appointments */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <h2 className="text-base font-semibold text-zinc-100 mb-4">
-            Today's Appointments
+        {/* Today's Schedule */}
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-zinc-900 mb-4">
+            Today's Schedule
           </h2>
           <div className="space-y-3">
             {[
-              { time: '10:00', client: 'Anna Petrenko', service: 'Classic Manicure', master: 'Olena', status: 'confirmed' },
-              { time: '12:00', client: 'Maria Kovalenko', service: 'Pedicure', master: 'Olena', status: 'pending' },
-              { time: '14:30', client: 'Iryna Sydorenko', service: '2D Lash Extensions', master: 'Svitlana', status: 'confirmed' },
-              { time: '16:00', client: 'Oksana Bondarenko', service: 'Haircut', master: 'Natalia', status: 'completed' },
+              { time: '10:00', client: 'Anna Petrenko', service: 'Classic Manicure', status: 'confirmed' },
+              { time: '12:00', client: 'Maria Kovalenko', service: 'Pedicure', status: 'pending' },
+              { time: '14:30', client: 'Iryna Sydorenko', service: '2D Lash Extensions', status: 'confirmed' },
             ].map((appt, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-950 border border-zinc-800 rounded-md">
-                <div className="text-sm font-semibold text-zinc-300 w-14">
+              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-50 border border-zinc-200 rounded-md">
+                <div className="text-sm font-semibold text-zinc-900 w-14">
                   {appt.time}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-zinc-100 text-sm">{appt.client}</div>
-                  <div className="text-xs text-zinc-400">{appt.service}</div>
-                  <div className="text-xs text-zinc-500">Master: {appt.master}</div>
+                  <div className="font-medium text-zinc-900 text-sm">{appt.client}</div>
+                  <div className="text-xs text-zinc-500">{appt.service}</div>
                 </div>
-                <div className={`text-xs px-2 py-1 rounded-md ${
-                  appt.status === 'completed' ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-900' :
-                  appt.status === 'confirmed' ? 'bg-blue-950/50 text-blue-400 border border-blue-900' :
-                  'bg-yellow-950/50 text-yellow-400 border border-yellow-900'
+                <div className={`text-xs px-2 py-1 rounded-md font-medium ${
+                  appt.status === 'confirmed' 
+                    ? 'bg-zinc-100 text-zinc-700' 
+                    : 'bg-zinc-100 text-zinc-500'
                 }`}>
-                  {appt.status === 'completed' ? 'Completed' :
-                   appt.status === 'confirmed' ? 'Confirmed' :
-                   'Pending'}
+                  {appt.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Clients */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <h2 className="text-base font-semibold text-zinc-100 mb-4">
-            Recent Clients
+        {/* Recent Activity */}
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-zinc-900 mb-4">
+            Recent Activity
           </h2>
           <div className="space-y-3">
             {[
-              { name: 'Anna Petrenko', phone: '+380 67 111 2233', visits: 15, discount: '10%', vip: true },
-              { name: 'Maria Kovalenko', phone: '+380 67 222 3344', visits: 8, discount: '5%', vip: false },
-              { name: 'Iryna Sydorenko', phone: '+380 67 333 4455', visits: 23, discount: '15%', vip: true },
-              { name: 'Oksana Bondarenko', phone: '+380 67 444 5566', visits: 3, discount: '0%', vip: false },
-            ].map((client, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-950 border border-zinc-800 rounded-md">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-md flex items-center justify-center text-white font-semibold text-sm">
-                  {client.name[0]}
+              { name: 'Anna Petrenko', action: 'Appointment booked', time: '10 min ago' },
+              { name: 'Maria Kovalenko', action: 'Payment received', time: '1 hour ago' },
+              { name: 'Iryna Sydorenko', action: 'Profile updated', time: '2 hours ago' },
+            ].map((activity, i) => (
+              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-50 border border-zinc-200 rounded-md">
+                <div className="w-10 h-10 bg-black rounded-md flex items-center justify-center text-white font-semibold text-sm">
+                  {activity.name[0]}
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <div className="font-medium text-zinc-100 text-sm">{client.name}</div>
-                    {client.vip && (
-                      <span className="text-xs px-2 py-0.5 bg-yellow-950/50 text-yellow-400 border border-yellow-900 rounded-md">
-                        VIP
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-zinc-500">{client.phone}</div>
+                  <div className="font-medium text-zinc-900 text-sm">{activity.name}</div>
+                  <div className="text-xs text-zinc-500">{activity.action}</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-zinc-200">{client.visits} visits</div>
-                  <div className="text-xs text-emerald-500">Discount: {client.discount}</div>
-                </div>
+                <div className="text-xs text-zinc-400">{activity.time}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Popular Services */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <h2 className="text-base font-semibold text-zinc-100 mb-4">
-            Popular Services
+        {/* Quick Stats */}
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-zinc-900 mb-4">
+            Quick Stats
           </h2>
-          <div className="space-y-3">
-            {[
-              { name: 'Classic Manicure', price: '₴450', duration: '90 min', bookings: 45 },
-              { name: 'Classic Pedicure', price: '₴550', duration: '120 min', bookings: 38 },
-              { name: '2D-3D Lash Extensions', price: '₴900', duration: '150 min', bookings: 32 },
-              { name: 'Haircut', price: '₴350', duration: '60 min', bookings: 28 },
-            ].map((service, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-950 border border-zinc-800 rounded-md">
-                <div className="flex-1">
-                  <div className="font-medium text-zinc-100 text-sm">{service.name}</div>
-                  <div className="text-xs text-zinc-500">{service.duration}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold text-zinc-100">{service.price}</div>
-                  <div className="text-xs text-zinc-500">{service.bookings} bookings</div>
-                </div>
-              </div>
-            ))}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-500">Services this week</span>
+              <span className="text-sm font-semibold text-zinc-900">0</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-500">New clients</span>
+              <span className="text-sm font-semibold text-zinc-900">0</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-500">Average rating</span>
+              <span className="text-sm font-semibold text-zinc-900">—</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-500">Completion rate</span>
+              <span className="text-sm font-semibold text-zinc-900">—</span>
+            </div>
           </div>
         </div>
 
-        {/* Inventory Status */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-md p-6">
-          <h2 className="text-base font-semibold text-zinc-100 mb-4">
-            Inventory Status
+        {/* Inventory Alert */}
+        <div className="bg-white border border-zinc-200 rounded-lg p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-zinc-900 mb-4">
+            Inventory Alerts
           </h2>
           <div className="space-y-3">
             {[
-              { brand: 'GETLOUD', item: 'Base 30ml', stock: 15, min: 5, status: 'ok' },
-              { brand: 'GETLOUD', item: 'Top 30ml', stock: 12, min: 5, status: 'ok' },
-              { brand: 'GETLOUD', item: 'Gel Polish Red #45', stock: 3, min: 3, status: 'low' },
-              { brand: 'DEZIK', item: 'Disinfectant 1L', stock: 2, min: 2, status: 'critical' },
+              { brand: 'GETLOUD', item: 'Gel Polish Red #45', stock: 3, status: 'low' },
+              { brand: 'DEZIK', item: 'Disinfectant 1L', stock: 2, status: 'critical' },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-950 border border-zinc-800 rounded-md">
+              <div key={i} className="flex items-center gap-4 p-3 bg-zinc-50 border border-zinc-200 rounded-md">
                 <div className="flex-1">
-                  <div className="font-medium text-zinc-100 text-sm">{item.item}</div>
+                  <div className="font-medium text-zinc-900 text-sm">{item.item}</div>
                   <div className="text-xs text-zinc-500">{item.brand}</div>
                 </div>
-                <div className="text-right">
-                  <div className={`text-sm font-semibold ${
-                    item.status === 'critical' ? 'text-red-400' :
-                    item.status === 'low' ? 'text-orange-400' :
-                    'text-emerald-500'
-                  }`}>
-                    {item.stock} pcs
-                  </div>
-                  <div className="text-xs text-zinc-500">Min: {item.min}</div>
+                <div className={`text-sm font-semibold ${
+                  item.status === 'critical' ? 'text-red-600' : 'text-orange-600'
+                }`}>
+                  {item.stock} left
                 </div>
               </div>
             ))}
