@@ -9,8 +9,6 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 export default function SignUpPage() {
-  const locale = 'uk'; // Default locale for root pages
-  
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,12 +29,12 @@ export default function SignUpPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+      options: {
+        data: {
+          full_name: fullName,
         },
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
     });
 
     // Handle errors
@@ -76,10 +74,9 @@ export default function SignUpPage() {
       console.log(`→ Email confirmation disabled, redirecting to /dashboard`);
       setSuccess(true);
       
-      // Redirect OUTSIDE any async error handling
+      // Redirect
       setTimeout(() => {
-        router.push('/dashboard');
-        router.refresh();
+        window.location.href = '/dashboard';
       }, 1500);
     } else {
       // Email confirmation required
@@ -91,20 +88,20 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-zinc-200 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+          <div className="bg-zinc-900 rounded-md border border-zinc-800 p-8 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600/20 rounded-md mb-4">
               <span className="text-3xl">✓</span>
             </div>
-            <h2 className="text-2xl font-bold text-black mb-2">
+            <h2 className="text-2xl font-bold text-zinc-100 mb-2">
               Account Created!
             </h2>
-            <p className="text-zinc-600 mb-4">
+            <p className="text-zinc-400 mb-4 text-sm">
               Redirecting to dashboard...
             </p>
             <div className="flex items-center justify-center">
-              <svg className="animate-spin h-5 w-5 text-black" viewBox="0 0 24 24">
+              <svg className="animate-spin h-5 w-5 text-emerald-500" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
@@ -116,29 +113,33 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-zinc-200">
+        {/* Card */}
+        <div className="bg-zinc-900 rounded-md border border-zinc-800 p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-4">
-              <span className="text-3xl">💅</span>
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-emerald-600 rounded-md flex items-center justify-center">
+                <span className="text-white text-lg font-bold">💅</span>
+              </div>
+              <span className="text-zinc-100 font-semibold text-sm">Beauty Pro CRM</span>
             </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Create Account
+            <h1 className="text-2xl font-bold text-zinc-100 mb-2">
+              Create your account
             </h1>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-400">
               Start managing your salon today
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSignUp} className="space-y-5">
+          <form onSubmit={handleSignUp} className="space-y-4">
             {/* Full Name */}
             <div>
               <label 
                 htmlFor="fullName" 
-                className="block text-sm font-medium text-zinc-700 mb-2"
+                className="block text-sm font-medium text-zinc-200 mb-2"
               >
                 Full Name
               </label>
@@ -150,7 +151,7 @@ export default function SignUpPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-md text-zinc-200 placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
@@ -158,9 +159,9 @@ export default function SignUpPage() {
             <div>
               <label 
                 htmlFor="email" 
-                className="block text-sm font-medium text-zinc-700 mb-2"
+                className="block text-sm font-medium text-zinc-200 mb-2"
               >
-                Email Address
+                Email
               </label>
               <input
                 id="email"
@@ -170,7 +171,7 @@ export default function SignUpPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-md text-zinc-200 placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
@@ -178,7 +179,7 @@ export default function SignUpPage() {
             <div>
               <label 
                 htmlFor="password" 
-                className="block text-sm font-medium text-zinc-700 mb-2"
+                className="block text-sm font-medium text-zinc-200 mb-2"
               >
                 Password
               </label>
@@ -191,7 +192,7 @@ export default function SignUpPage() {
                 required
                 minLength={6}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-md text-zinc-200 placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
               <p className="text-xs text-zinc-500 mt-1">
                 Minimum 6 characters
@@ -200,8 +201,8 @@ export default function SignUpPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="p-3 bg-red-950/50 border border-red-900 rounded-md">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
@@ -209,25 +210,30 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-zinc-800 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-sm"
+              className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Creating account..." : "Create Account"}
+              {isLoading ? "Creating account..." : "Create account"}
             </button>
           </form>
 
-          {/* Sign In Link */}
+          {/* Login Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-400">
               Already have an account?{" "}
               <Link 
-                href={`/${locale}/login`}
-                className="font-medium text-black hover:underline"
+                href="/login"
+                className="text-emerald-500 hover:text-emerald-400 transition-colors"
               >
                 Sign in
               </Link>
             </p>
           </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-zinc-500 mt-6">
+          By creating an account, you agree to our Terms of Service
+        </p>
       </div>
     </div>
   );

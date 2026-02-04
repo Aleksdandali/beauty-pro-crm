@@ -64,32 +64,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-zinc-200">
+        <div className="bg-zinc-900 rounded-md border border-zinc-800 p-8">
           {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-4">
-              <span className="text-3xl">💅</span>
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-emerald-600 rounded-md flex items-center justify-center">
+                <span className="text-white text-lg font-bold">💅</span>
+              </div>
+              <span className="text-zinc-100 font-semibold text-sm">Beauty Pro CRM</span>
             </div>
-            <h1 className="text-2xl font-bold text-black mb-2">
-              Beauty Pro CRM
+            <h1 className="text-2xl font-bold text-zinc-100 mb-2">
+              Welcome back
             </h1>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-400">
               Sign in to your account
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSignIn} className="space-y-5">
+          <form onSubmit={handleSignIn} className="space-y-4">
             {/* Email */}
             <div>
               <label 
                 htmlFor="email" 
-                className="block text-sm font-medium text-zinc-700 mb-2"
+                className="block text-sm font-medium text-zinc-200 mb-2"
               >
-                Email Address
+                Email
               </label>
               <input
                 id="email"
@@ -99,26 +102,18 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-md text-zinc-200 placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
             {/* Password */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label 
-                  htmlFor="password" 
-                  className="block text-sm font-medium text-zinc-700"
-                >
-                  Password
-                </label>
-                <Link 
-                  href={`/${locale}/forgot-password`}
-                  className="text-xs text-zinc-500 hover:text-black transition"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <label 
+                htmlFor="password" 
+                className="block text-sm font-medium text-zinc-200 mb-2"
+              >
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
@@ -126,15 +121,16 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-md text-zinc-200 placeholder-zinc-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="p-3 bg-red-950/50 border border-red-900 rounded-md">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
@@ -142,38 +138,28 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-black text-white rounded-lg font-medium hover:bg-zinc-800 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-sm"
+              className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                "Sign In"
-              )}
+              {isLoading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
           {/* Register Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-zinc-400">
               Don&apos;t have an account?{" "}
               <Link 
-                href="/register"
-                className="font-medium text-black hover:underline"
+                href="/signup"
+                className="text-emerald-500 hover:text-emerald-400 transition-colors"
               >
-                Register
+                Sign up
               </Link>
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-zinc-400 mt-6">
+        <p className="text-center text-xs text-zinc-500 mt-6">
           Protected by industry-standard encryption
         </p>
       </div>

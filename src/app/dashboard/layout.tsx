@@ -24,63 +24,73 @@ export default function DashboardLayout({
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    window.location.href = "/login";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-zinc-100">
-      {/* Top Bar */}
-      <div className="bg-white border-b border-zinc-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-xl">💅</span>
-              </div>
-              <div className="text-xl font-bold text-black">
-                Beauty Pro CRM
-              </div>
+    <div className="min-h-screen bg-zinc-950 flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+        {/* Logo */}
+        <div className="p-6 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-emerald-600 rounded-md flex items-center justify-center">
+              <span className="text-white text-lg font-bold">💅</span>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-zinc-600 hover:text-black transition"
-            >
-              Sign Out
-            </button>
+            <span className="text-zinc-100 font-semibold text-sm">Beauty Pro CRM</span>
           </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <div className="bg-white border-b border-zinc-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex gap-1 overflow-x-auto">
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <ul className="space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-                    isActive
-                      ? "text-black border-b-2 border-black"
-                      : "text-zinc-600 hover:text-black"
-                  }`}
-                >
-                  <span>{item.icon}</span>
-                  {item.name}
-                </Link>
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                      isActive
+                        ? "bg-zinc-800 text-zinc-100"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                    }`}
+                  >
+                    <span className="text-base">{item.icon}</span>
+                    {item.name}
+                  </Link>
+                </li>
               );
             })}
-          </nav>
-        </div>
-      </div>
+          </ul>
+        </nav>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </div>
+        {/* User Section */}
+        <div className="p-4 border-t border-zinc-800">
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 rounded-md transition-colors"
+          >
+            <span>🚪</span>
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <header className="h-14 border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex items-center px-6">
+          <div className="text-sm text-zinc-500">
+            Home <span className="mx-2">/</span> <span className="text-zinc-200">Dashboard</span>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
