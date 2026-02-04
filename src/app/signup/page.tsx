@@ -23,6 +23,7 @@ export default function SignUpPage() {
     try {
       const supabase = createClient();
       
+      // Step 1: Sign up with email/password
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -30,18 +31,31 @@ export default function SignUpPage() {
           data: {
             full_name: fullName,
           },
+          // Skip email confirmation for now
+          emailRedirectTo: `${window.location.origin}/uk/onboarding`,
         },
       });
 
       if (signUpError) throw signUpError;
+      if (!data.user) throw new Error("No user returned");
 
-      console.log("✅ Sign up successful:", data.user?.email);
+      console.log("✅ Sign up successful:", data.user.email);
       
-      setSuccess(true);
-      
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      // Check if email confirmation is required
+      if (data.session) {
+        // User is automatically signed in (email confirmation disabled)
+        console.log("→ Email confirmation disabled, redirecting to onboarding");
+        setSuccess(true);
+        
+        setTimeout(() => {
+          router.push("/uk/onboarding");
+          router.refresh();
+        }, 1500);
+      } else {
+        // Email confirmation required
+        console.log("→ Email confirmation required");
+        setSuccess(true);
+      }
       
     } catch (err: any) {
       console.error("❌ Sign up error:", err);
@@ -63,11 +77,14 @@ export default function SignUpPage() {
               Account Created!
             </h2>
             <p className="text-zinc-600 mb-4">
-              Check your email to confirm your account.
+              Redirecting to complete your salon setup...
             </p>
-            <p className="text-sm text-zinc-500">
-              Redirecting to login...
-            </p>
+            <div className="flex items-center justify-center">
+              <svg className="animate-spin h-5 w-5 text-black" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>

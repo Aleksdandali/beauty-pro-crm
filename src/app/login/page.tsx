@@ -19,15 +19,40 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
+      
+      // Step 1: Sign in with password
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) throw signInError;
+      if (!data.user) throw new Error("No user returned");
 
-      console.log("✅ Sign in successful:", data.user?.email);
-      router.push("/dashboard");
+      console.log("✅ Sign in successful:", data.user.email);
+
+      // Step 2: Check if user has staff record
+      const { data: staffRecord, error: staffError } = await supabase
+        .from("staff")
+        .select("salon_id, role")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (staffError) {
+        console.error("❌ Staff check error:", staffError);
+      }
+
+      // Step 3: Redirect based on staff record
+      if (!staffRecord) {
+        // No staff record → redirect to onboarding
+        console.log("→ Redirecting to onboarding (no staff record)");
+        router.push("/uk/onboarding");
+      } else {
+        // Has staff record → redirect to dashboard
+        console.log("→ Redirecting to dashboard");
+        router.push("/dashboard");
+      }
+      
       router.refresh();
     } catch (err: any) {
       console.error("❌ Sign in error:", err);
