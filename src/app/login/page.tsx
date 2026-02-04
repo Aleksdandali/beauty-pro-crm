@@ -57,9 +57,9 @@ export default function LoginPage() {
       console.warn("⚠️ Profile check failed (non-critical):", profileErr);
     }
 
-    // Step 3: Redirect to dashboard with locale (OUTSIDE try/catch)
-    console.log(`→ Redirecting to /${locale}/dashboard`);
-    router.push(`/${locale}/dashboard`);
+    // Step 3: Redirect to dashboard (OUTSIDE try/catch)
+    console.log(`→ Redirecting to /dashboard`);
+    router.push('/dashboard');
     router.refresh();
   };
 

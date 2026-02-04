@@ -35,7 +35,7 @@ export default function SignUpPage() {
           data: {
             full_name: fullName,
           },
-          emailRedirectTo: `${window.location.origin}/${locale}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
     });
 
@@ -73,12 +73,12 @@ export default function SignUpPage() {
     // Check if email confirmation is required
     if (data.session) {
       // User is automatically signed in (email confirmation disabled)
-      console.log(`→ Email confirmation disabled, redirecting to /${locale}/dashboard`);
+      console.log(`→ Email confirmation disabled, redirecting to /dashboard`);
       setSuccess(true);
       
       // Redirect OUTSIDE any async error handling
       setTimeout(() => {
-        router.push(`/${locale}/dashboard`);
+        router.push('/dashboard');
         router.refresh();
       }, 1500);
     } else {
