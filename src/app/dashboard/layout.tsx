@@ -82,7 +82,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors">
+    <div className="min-h-screen h-full bg-gray-50 dark:bg-[#0a0a0a] transition-colors overflow-x-hidden">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -202,9 +202,9 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 flex flex-col min-h-screen">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/10">
+        <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/10 flex-shrink-0">
           <div className="flex items-center justify-between h-full px-4 sm:px-6">
             <div className="flex items-center gap-4">
               <button
@@ -247,7 +247,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-[#0a0a0a]">
           {children}
         </main>
       </div>

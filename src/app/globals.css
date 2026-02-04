@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Disable overscroll bounce */
+html, body {
+  overscroll-behavior: none;
+  overflow-x: hidden;
+}
+
+/* iOS Safari fix */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Prevent pull-to-refresh */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Safe area for iOS */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 @layer base {
   :root {
     --background: 255 255 255;
