@@ -57,7 +57,7 @@ export default function SignUpPage() {
     
     // Step 2: Create user profile via RPC
     try {
-      const { data: profile, error: profileError } = await supabase.rpc('create_profile_if_not_exists', {
+      const { data: profile, error: profileError } = await (supabase as any).rpc('create_profile_if_not_exists', {
         p_full_name: fullName || ''
       });
       

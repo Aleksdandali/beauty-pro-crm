@@ -416,10 +416,17 @@ export interface Database {
     };
     Functions: {
       create_profile_if_not_exists: {
-        Args: {
-          p_full_name: string;
+        Args: { p_full_name?: string };
+        Returns: {
+          id: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          phone: string | null;
+          role: 'owner' | 'admin' | 'master' | 'client';
+          shop_id: string | null;
+          created_at: string;
+          updated_at: string;
         };
-        Returns: Database['public']['Tables']['profiles']['Row'];
       };
     };
     Enums: {

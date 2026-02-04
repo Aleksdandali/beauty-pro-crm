@@ -48,8 +48,9 @@ export default function LoginPage() {
 
     // Step 2: Ensure profile exists (create if missing)
     try {
-      await supabase.rpc('create_profile_if_not_exists', {
-        p_full_name: data.user.user_metadata?.full_name || data.user.email || ''
+      const profileName = data.user.user_metadata?.full_name || data.user.email || '';
+      await (supabase as any).rpc('create_profile_if_not_exists', {
+        p_full_name: profileName
       });
       console.log("✅ Profile check completed");
     } catch (profileErr) {
