@@ -20,46 +20,51 @@ export default function SignUpPage({ params }: { params: { locale: string } }) {
     setError("");
     setSuccess(false);
 
-    try {
-      const supabase = createClient();
-      
-      // Step 1: Sign up with email/password
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/${params.locale}/dashboard`,
+    const supabase = createClient();
+    
+    // Step 1: Sign up with email/password
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
         },
-      });
+        emailRedirectTo: `${window.location.origin}/${params.locale}/dashboard`,
+      },
+    });
 
-      if (signUpError) throw signUpError;
-      if (!data.user) throw new Error("No user returned");
+    // Handle errors
+    if (signUpError) {
+      console.error("❌ Sign up error:", signUpError);
+      setError(signUpError.message || "Failed to create account");
+      setIsLoading(false);
+      return;
+    }
 
-      console.log("✅ Sign up successful:", data.user.email);
+    if (!data.user) {
+      setError("No user returned");
+      setIsLoading(false);
+      return;
+    }
+
+    console.log("✅ Sign up successful:", data.user.email);
+    
+    // Check if email confirmation is required
+    if (data.session) {
+      // User is automatically signed in (email confirmation disabled)
+      console.log(`→ Email confirmation disabled, redirecting to /${params.locale}/dashboard`);
+      setSuccess(true);
       
-      // Check if email confirmation is required
-      if (data.session) {
-        // User is automatically signed in (email confirmation disabled)
-        console.log(`→ Email confirmation disabled, redirecting to /${params.locale}/dashboard`);
-        setSuccess(true);
-        
-        setTimeout(() => {
-          router.push(`/${params.locale}/dashboard`);
-          router.refresh();
-        }, 1500);
-      } else {
-        // Email confirmation required
-        console.log("→ Email confirmation required");
-        setSuccess(true);
-      }
-      
-    } catch (err: any) {
-      console.error("❌ Sign up error:", err);
-      setError(err.message || "Failed to create account");
-    } finally {
+      // Redirect OUTSIDE any async error handling
+      setTimeout(() => {
+        router.push(`/${params.locale}/dashboard`);
+        router.refresh();
+      }, 1500);
+    } else {
+      // Email confirmation required
+      console.log("→ Email confirmation required");
+      setSuccess(true);
       setIsLoading(false);
     }
   };

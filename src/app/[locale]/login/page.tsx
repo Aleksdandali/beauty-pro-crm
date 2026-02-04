@@ -17,31 +17,34 @@ export default function LoginPage({ params }: { params: { locale: string } }) {
     setIsLoading(true);
     setError("");
 
-    try {
-      const supabase = createClient();
-      
-      // Step 1: Sign in with password
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const supabase = createClient();
+    
+    // Step 1: Sign in with password
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (signInError) throw signInError;
-      if (!data.user) throw new Error("No user returned");
-
-      console.log("✅ Sign in successful:", data.user.email);
-
-      // Step 2: Redirect to dashboard with locale
-      console.log(`→ Redirecting to /${params.locale}/dashboard`);
-      router.push(`/${params.locale}/dashboard`);
-      router.refresh();
-      
-    } catch (err: any) {
-      console.error("❌ Sign in error:", err);
-      setError(err.message || "Invalid email or password");
-    } finally {
+    // Handle errors
+    if (signInError) {
+      console.error("❌ Sign in error:", signInError);
+      setError(signInError.message || "Invalid email or password");
       setIsLoading(false);
+      return;
     }
+
+    if (!data.user) {
+      setError("No user returned");
+      setIsLoading(false);
+      return;
+    }
+
+    console.log("✅ Sign in successful:", data.user.email);
+
+    // Step 2: Redirect to dashboard with locale (OUTSIDE try/catch)
+    console.log(`→ Redirecting to /${params.locale}/dashboard`);
+    router.push(`/${params.locale}/dashboard`);
+    router.refresh();
   };
 
   return (
