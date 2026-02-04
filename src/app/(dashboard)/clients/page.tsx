@@ -38,19 +38,28 @@ export default function ClientsPage() {
 
   // Завантаження клієнтів
   const loadClients = async () => {
+    console.log("🔄 Starting loadClients...");
     setLoading(true);
     setError(null);
     
     const supabase = createClient();
+    console.log("✅ Supabase client created");
+    console.log("🔍 SALON_ID:", SALON_ID);
+    
     const { data, error } = await supabase
       .from("clients")
       .select("*")
       .eq("salon_id", SALON_ID)
       .order("created_at", { ascending: false });
 
+    console.log("📦 Response data:", data);
+    console.log("❌ Response error:", error);
+
     if (error) {
+      console.error("💥 Error loading clients:", error);
       setError(error.message);
     } else {
+      console.log(`✅ Loaded ${data?.length || 0} clients`);
       setClients(data || []);
     }
     setLoading(false);
