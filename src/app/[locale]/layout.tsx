@@ -14,8 +14,24 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  const messages = await getMessages();
+  let locale = "uk"; // default fallback
+  let messages = {};
+
+  try {
+    const resolvedParams = await params;
+    locale = resolvedParams.locale || "uk";
+    
+    // Safe message loading
+    try {
+      messages = await getMessages();
+    } catch (messageError) {
+      console.error("[Layout] Failed to load messages:", messageError);
+      // Continue with empty messages - app will still render
+    }
+  } catch (error) {
+    console.error("[Layout] Critical error:", error);
+    // Use fallback values - don't crash the layout
+  }
 
   return (
     <html lang={locale}>
