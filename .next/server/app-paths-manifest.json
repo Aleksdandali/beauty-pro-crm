@@ -1,12 +1,1 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/(dashboard)/clients/page": "app/(dashboard)/clients/page.js",
-  "/test-login/page": "app/test-login/page.js",
-  "/page": "app/page.js",
-  "/signup/page": "app/signup/page.js",
-  "/register/page": "app/register/page.js",
-  "/login/page": "app/login/page.js",
-  "/dashboard/clients/page": "app/dashboard/clients/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/[locale]/dashboard/clients/page": "app/[locale]/dashboard/clients/page.js"
-}
+{}

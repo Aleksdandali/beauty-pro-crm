@@ -1,216 +1,310 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
+import { Plus, X, Search } from "lucide-react";
 
-interface Client {
+// ⚠️ SALON_ID з бази даних
+const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+
+type Client = {
   id: string;
-  created_at: string;
-  salon_id: string;
   full_name: string;
   phone: string;
-  email: string | null;
+  instagram: string | null;
+  telegram: string | null;
   notes: string | null;
-  birthday: string | null;
-  discount_percent: number | null;
+  rfm_segment: string;
   total_visits: number;
   total_spent: number;
-  last_visit: string | null;
-}
+  created_at: string;
+};
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  
+  const [form, setForm] = useState({
+    full_name: "",
+    phone: "",
+    instagram: "",
+    telegram: "",
+    notes: "",
+  });
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
+  // Завантаження клієнтів
+  const loadClients = async () => {
+    console.log("🔄 Starting loadClients...");
+    setLoading(true);
+    setError(null);
+    
+    const supabase = createClient();
+    console.log("✅ Supabase client created");
+    console.log("🔍 SALON_ID:", SALON_ID);
+    
+    const { data, error } = await supabase
+      .from("clients")
+      .select("*")
+      .eq("salon_id", SALON_ID)
+      .order("created_at", { ascending: false });
 
-  const fetchClients = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const supabase = createClient();
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        setError("Not authenticated");
-        setIsLoading(false);
-        return;
-      }
+    console.log("📦 Response data:", data);
+    console.log("❌ Response error:", error);
 
-      // Fetch clients (RLS will filter by user automatically)
-      const { data, error: fetchError } = await supabase
-        .from('clients')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (fetchError) {
-        console.error("Error fetching clients:", fetchError);
-        setError(fetchError.message);
-      } else {
-        setClients(data || []);
-      }
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      setError("Failed to load clients");
-    } finally {
-      setIsLoading(false);
+    if (error) {
+      console.error("💥 Error loading clients:", error);
+      setError(error.message);
+    } else {
+      console.log(`✅ Loaded ${data?.length || 0} clients`);
+      setClients(data || []);
     }
+    setLoading(false);
   };
 
+  // Завантажити при першому рендері
+  useEffect(() => {
+    loadClients();
+  }, []);
+
+  // Додати клієнта
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    const supabase = createClient();
+    const { error } = await supabase.from("clients").insert({
+      salon_id: SALON_ID,
+      full_name: form.full_name,
+      phone: form.phone,
+      instagram: form.instagram || null,
+      telegram: form.telegram || null,
+      notes: form.notes || null,
+      rfm_segment: "New",
+      total_visits: 0,
+      total_spent: 0,
+    });
+
+    if (error) {
+      alert("Помилка: " + error.message);
+    } else {
+      setShowModal(false);
+      setForm({ full_name: "", phone: "", instagram: "", telegram: "", notes: "" });
+      loadClients();
+    }
+    setSaving(false);
+  };
+
+  // Фільтрація по пошуку
+  const filtered = clients.filter(
+    (c) =>
+      c.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      c.phone.includes(search)
+  );
+
+  // Колір для RFM сегменту
+  const rfmColor = (segment: string) => {
+    const colors: Record<string, string> = {
+      VIP: "bg-yellow-100 text-yellow-800",
+      Loyal: "bg-green-100 text-green-800",
+      Regular: "bg-blue-100 text-blue-800",
+      Sleeping: "bg-orange-100 text-orange-800",
+      Lost: "bg-red-100 text-red-800",
+      New: "bg-gray-100 text-gray-800",
+    };
+    return colors[segment] || "bg-gray-100 text-gray-800";
+  };
+
+  // Дебаг інфо
+  const debugInfo = `Clients: ${clients.length}, Loading: ${loading}, Error: ${error || 'none'}`;
+
   return (
-    <div>
-      {/* Header - Hidden on Mobile */}
-      <div className="mb-8 hidden md:flex items-center justify-between">
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight mb-2">
-            Clients
-          </h1>
-          <p className="text-base text-zinc-600">Manage your client database</p>
+          <h1 className="text-2xl font-bold text-gray-900">Клієнти</h1>
+          <p className="text-gray-500">{clients.length} клієнтів</p>
         </div>
-        <button className="px-6 py-3 bg-black hover:bg-zinc-800 text-white rounded-lg text-sm font-semibold transition-all shadow-sm">
-          + Add Client
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-colors font-medium"
+        >
+          <Plus size={18} />
+          Додати клієнта
         </button>
       </div>
 
-      {/* Mobile Header */}
-      <div className="mb-6 md:hidden flex items-center justify-between">
-        <h1 className="text-xl font-bold text-black tracking-tight">
-          Clients
-        </h1>
-        <button className="px-4 py-2 bg-black text-white rounded-lg text-sm font-semibold">
-          + Add
-        </button>
+      {/* DEBUG INFO */}
+      <p className="text-xs text-red-500 bg-red-50 p-2 rounded mb-4">
+        DEBUG: {debugInfo} | SALON_ID: {SALON_ID}
+      </p>
+
+      {/* Пошук */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input
+          type="text"
+          placeholder="Пошук по імені або телефону..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+        />
       </div>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="bg-white border border-zinc-200 rounded-xl p-12 text-center shadow-sm">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-          <p className="text-sm text-zinc-600 mt-4">Loading clients...</p>
+      {/* Стан */}
+      {loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Завантаження...</p>
+          <p className="text-xs text-red-500 mt-2">SALON_ID: {SALON_ID}</p>
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg mb-4">
+          Помилка: {error}
+          <button onClick={loadClients} className="ml-4 underline">Спробувати знову</button>
         </div>
       )}
 
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 shadow-sm">
-          <p className="text-sm text-red-600 font-medium">Error: {error}</p>
-          <button 
-            onClick={fetchClients}
-            className="mt-4 px-4 py-2 bg-black text-white rounded-lg text-sm font-semibold hover:bg-zinc-800 transition-all"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && !error && clients.length === 0 && (
-        <div className="bg-white border border-zinc-200 rounded-xl p-12 text-center shadow-sm">
-          <div className="text-5xl mb-4">👥</div>
-          <h3 className="text-lg font-bold text-zinc-900 mb-2">No clients yet</h3>
-          <p className="text-sm text-zinc-600 mb-6">
-            Start building your client database by adding your first client
-          </p>
-          <button className="px-6 py-3 bg-black hover:bg-zinc-800 text-white rounded-lg text-sm font-semibold transition-all shadow-sm">
-            + Add Your First Client
-          </button>
-        </div>
-      )}
-
-      {/* Clients Table */}
-      {!isLoading && !error && clients.length > 0 && (
-        <div className="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-zinc-50 border-b border-zinc-200">
+      {/* Таблиця */}
+      {!loading && !error && (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Ім'я</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900">Телефон</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden md:table-cell">Instagram</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden md:table-cell">Сегмент</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden lg:table-cell">Візитів</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-900 hidden lg:table-cell">Витрачено</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
                 <tr>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                    Added
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-zinc-700 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                    {search ? "Нічого не знайдено" : "Немає клієнтів. Додайте першого!"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {clients.map((client) => (
-                  <tr key={client.id} className="hover:bg-zinc-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-zinc-900 text-sm">{client.full_name}</div>
-                      {client.notes && (
-                        <div className="text-xs text-zinc-500 mt-1 truncate max-w-xs">{client.notes}</div>
-                      )}
+              ) : (
+                filtered.map((client) => (
+                  <tr key={client.id} className="border-b hover:bg-gray-50 cursor-pointer">
+                    <td className="px-4 py-3 font-medium">{client.full_name}</td>
+                    <td className="px-4 py-3 text-gray-600">{client.phone}</td>
+                    <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
+                      {client.instagram ? `@${client.instagram}` : "—"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-zinc-600">
-                      {client.phone}
+                    <td className="px-4 py-3 hidden md:table-cell">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${rfmColor(client.rfm_segment)}`}>
+                        {client.rfm_segment}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-zinc-600">
-                      {client.email || '—'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-zinc-500">
-                      {new Date(client.created_at).toLocaleDateString('uk-UA')}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="text-sm text-zinc-600 hover:text-black font-medium transition-colors">
-                        Edit
-                      </button>
-                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell">{client.total_visits}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">₴{client.total_spent}</td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-zinc-100">
-            {clients.map((client) => (
-              <div key={client.id} className="p-4 hover:bg-zinc-50 transition-colors">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="font-semibold text-zinc-900 text-sm mb-1">
-                      {client.full_name}
-                    </div>
-                    <div className="text-xs text-zinc-600 mb-1">📱 {client.phone}</div>
-                    {client.email && (
-                      <div className="text-xs text-zinc-600">✉️ {client.email}</div>
-                    )}
-                  </div>
-                  <button className="text-xs text-zinc-600 hover:text-black font-medium">
-                    Edit
-                  </button>
-                </div>
-                {client.notes && (
-                  <p className="text-xs text-zinc-500 bg-zinc-50 p-2 rounded-md">
-                    {client.notes}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Total Count */}
-      {!isLoading && !error && clients.length > 0 && (
-        <div className="mt-4 text-sm text-zinc-500">
-          Total clients: <span className="font-semibold text-zinc-900">{clients.length}</span>
+      {/* Модалка */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Новий клієнт</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-black">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ім'я <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={form.full_name}
+                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Олена Петренко"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Телефон <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="+380501234567"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                  <input
+                    type="text"
+                    value={form.instagram}
+                    onChange={(e) => setForm({ ...form, instagram: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                    placeholder="username"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telegram</label>
+                  <input
+                    type="text"
+                    value={form.telegram}
+                    onChange={(e) => setForm({ ...form, telegram: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                    placeholder="username"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Нотатки</label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                  rows={3}
+                  placeholder="Алергії, побажання..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg font-medium hover:bg-gray-50"
+                >
+                  Скасувати
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50"
+                >
+                  {saving ? "Зберігаю..." : "Додати"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
