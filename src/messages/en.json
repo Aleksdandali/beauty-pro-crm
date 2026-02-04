@@ -119,5 +119,21 @@
     "email": "Email",
     "currency": "Currency",
     "timezone": "Timezone"
+  },
+  "onboarding": {
+    "title": "Create your salon",
+    "subtitle": "Fill in your business information",
+    "salonName": "Salon name",
+    "salonNamePlaceholder": "Beauty Studio",
+    "phone": "Phone",
+    "phonePlaceholder": "+1",
+    "city": "City",
+    "cityPlaceholder": "New York",
+    "address": "Address",
+    "addressPlaceholder": "123 Main Street",
+    "submit": "Create salon",
+    "creating": "Creating...",
+    "error": "Error creating salon",
+    "success": "Salon created successfully!"
   }
 }

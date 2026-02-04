@@ -69,15 +69,49 @@ export async function middleware(request: NextRequest) {
   ];
 
   const isPublicRoute = publicRoutes.includes(pathname);
+  const isOnboardingRoute = pathname.includes("/onboarding");
 
   // If user is not authenticated and trying to access protected route
   if (!user && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Redirect authenticated users from /login to /dashboard
+  // If user IS authenticated, check onboarding status
+  if (user && !isPublicRoute) {
+    // Check if user has completed onboarding (has staff record)
+    const { data: staffRecord } = await supabase
+      .from("staff")
+      .select("salon_id")
+      .eq("user_id", user.id)
+      .single();
+
+    const hasCompletedOnboarding = !!staffRecord;
+
+    // If NOT completed onboarding and NOT on onboarding page → redirect to onboarding
+    if (!hasCompletedOnboarding && !isOnboardingRoute) {
+      return NextResponse.redirect(new URL("/uk/onboarding", request.url));
+    }
+
+    // If completed onboarding and ON onboarding page → redirect to dashboard
+    if (hasCompletedOnboarding && isOnboardingRoute) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
+  // Redirect authenticated users from /login to /dashboard (if onboarding completed)
   if (pathname === "/login" && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    // Check onboarding status before redirecting
+    const { data: staffRecord } = await supabase
+      .from("staff")
+      .select("salon_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (staffRecord) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    } else {
+      return NextResponse.redirect(new URL("/uk/onboarding", request.url));
+    }
   }
 
   return response;

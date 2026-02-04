@@ -119,5 +119,21 @@
     "email": "Електронна пошта",
     "currency": "Валюта",
     "timezone": "Часовий пояс"
+  },
+  "onboarding": {
+    "title": "Створіть ваш салон",
+    "subtitle": "Заповніть інформацію про ваш бізнес",
+    "salonName": "Назва салону",
+    "salonNamePlaceholder": "Beauty Studio",
+    "phone": "Телефон",
+    "phonePlaceholder": "+380",
+    "city": "Місто",
+    "cityPlaceholder": "Київ",
+    "address": "Адреса",
+    "addressPlaceholder": "вул. Хрещатик, 1",
+    "submit": "Створити салон",
+    "creating": "Створюємо...",
+    "error": "Помилка створення салону",
+    "success": "Салон успішно створено!"
   }
 }
