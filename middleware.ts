@@ -6,14 +6,15 @@ import type { Database } from "@/types/database";
 // next-intl middleware configuration
 const intlMiddleware = createMiddleware({
   locales: ['uk', 'en'],
-  defaultLocale: 'uk',
-  localePrefix: 'as-needed'
+  defaultLocale: 'uk'
 });
 
 export async function middleware(request: NextRequest) {
-  // First, run next-intl middleware for locale handling
+  // Run next-intl middleware for locale handling
   const intlResponse = intlMiddleware(request);
-  if (intlResponse) {
+  
+  // If intl middleware wants to redirect, let it
+  if (intlResponse && intlResponse.status === 307) {
     return intlResponse;
   }
   let response = NextResponse.next({
