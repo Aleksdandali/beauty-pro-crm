@@ -58,29 +58,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Check if user has staff record (onboarding completed)
-  const isOnboardingRoute = pathname.includes("/onboarding");
-  
-  try {
-    const { data: staffRecord } = await supabase
-      .from("staff")
-      .select("salon_id, role")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
-
-    // If NO staff record and NOT on onboarding → redirect to onboarding
-    if (!staffRecord && !isOnboardingRoute) {
-      return NextResponse.redirect(new URL("/uk/onboarding", request.url));
-    }
-
-    // If HAS staff record and ON onboarding → redirect to dashboard
-    if (staffRecord && isOnboardingRoute) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-  } catch (error) {
-    console.error("[Middleware] Error checking staff:", error);
-  }
-
   return response;
 }
 
