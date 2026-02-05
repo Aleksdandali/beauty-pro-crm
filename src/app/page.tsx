@@ -360,8 +360,8 @@ export default function LandingPage() {
         <div className="nav-in">
           <div className="nav-l">
             <Link href="/" className="logo">
-              <div className="logo-mark"><span>B</span></div>
-              <span className="logo-name">Beauty Pro</span>
+              <div className="logo-mark"><span>S</span></div>
+              <span className="logo-name">ShinePRO</span>
             </Link>
             <ul className="nav-menu">
               <li><a href="#product">Продукт</a></li>
@@ -384,7 +384,7 @@ export default function LandingPage() {
         <div className="hero-c">
           <div className="hero-pill"><span className="pill-dot"></span>CRM створена для beauty-індустрії</div>
           <h1>Ваш салон втрачає <span className="gt">₴47 000</span> щомісяця без CRM</h1>
-          <p className="hero-desc">No-show, забуті клієнти, хаос у записах — це не дрібниці, це реальні гроші. Beauty Pro закриває ці діри за 5 хвилин.</p>
+          <p className="hero-desc">No-show, забуті клієнти, хаос у записах — це не дрібниці, це реальні гроші. ShinePRO закриває ці діри за 5 хвилин.</p>
           <div className="hero-btns">
             <a href="#cta" className="btn-p">
               Запустити безкоштовно
@@ -417,7 +417,7 @@ export default function LandingPage() {
               <div className="dots"><span className="dot dot-r"></span><span className="dot dot-y"></span><span className="dot dot-g"></span></div>
               <div className="url-bar">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'var(--emerald)'}}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                app.beautypro.com.ua/dashboard
+                app.shineprocrm.com/dashboard
               </div>
             </div>
             <div className="dash">
@@ -536,7 +536,7 @@ export default function LandingPage() {
                 <div className="loss-total">
                   <div className="loss-total-label">Загальні втрати на місяць</div>
                   <div className="loss-total-value">₴{formatNumber(lossTotal)}</div>
-                  <div className="loss-total-sub">Це можна повернути з Beauty Pro</div>
+                  <div className="loss-total-sub">Це можна повернути з ShinePRO</div>
                 </div>
                 <div className="calc-cta">
                   <a href="#cta" className="btn-p">
@@ -726,7 +726,7 @@ export default function LandingPage() {
         <div className="faq-list">
           {[
             { q: 'Скільки часу займає налаштування?', a: 'Реєстрація займає 5 хвилин. Базове налаштування з додаванням послуг і майстрів — 15 хвилин. Якщо у вас є база клієнтів в Excel або іншій CRM, ми безкоштовно допоможемо перенести її протягом 24 годин.' },
-            { q: 'Чи потрібно встановлювати щось на комп\'ютер?', a: 'Ні. Beauty Pro працює в браузері та як PWA-додаток на телефоні. Заходите з будь-якого пристрою — всі дані синхронізуються автоматично.' },
+            { q: 'Чи потрібно встановлювати щось на комп\'ютер?', a: 'Ні. ShinePRO працює в браузері та як PWA-додаток на телефоні. Заходите з будь-якого пристрою — всі дані синхронізуються автоматично.' },
             { q: 'Як працює Telegram-бот для клієнтів?', a: 'Клієнт знаходить бот вашого салону в Telegram, бачить вільні слоти, обирає майстра та послугу, підтверджує запис. За 2 години до візиту отримує нагадування.' },
             { q: 'Що якщо мені не підійде?', a: '14 днів безкоштовного тріалу без прив\'язки картки. Якщо не підійде — просто не продовжуйте. Жодних зобов\'язань.' },
           ].map((item, i) => (
@@ -773,10 +773,10 @@ export default function LandingPage() {
         <div className="foot-in">
           <div className="foot-l">
             <Link href="/" className="logo">
-              <div className="logo-mark"><span>B</span></div>
-              <span className="logo-name">Beauty Pro</span>
+              <div className="logo-mark"><span>S</span></div>
+              <span className="logo-name">ShinePRO</span>
             </Link>
-            <span className="foot-copy">© 2026 Beauty Pro. Всі права захищені.</span>
+            <span className="foot-copy">© 2026 ShinePRO. Всі права захищені.</span>
           </div>
           <div className="foot-links">
             <a href="#">Конфіденційність</a>
