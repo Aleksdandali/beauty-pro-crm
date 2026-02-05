@@ -442,7 +442,7 @@ export default function CalendarPage() {
                 );
               })}
             </div>
-          ) : (
+          ) : viewMode === "week" ? (
             /* Week View */
             <div>
               {/* Header */}
