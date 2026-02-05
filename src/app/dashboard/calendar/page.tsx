@@ -53,7 +53,7 @@ const isSameDay = (d1: Date, d2: Date) => {
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"day" | "week">("day");
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("week");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -86,7 +86,7 @@ export default function CalendarPage() {
       startDate.setHours(0, 0, 0, 0);
       endDate = new Date(currentDate);
       endDate.setHours(23, 59, 59, 999);
-    } else {
+    } else if (viewMode === "week") {
       // Тиждень
       startDate = new Date(currentDate);
       const day = startDate.getDay();
@@ -94,6 +94,12 @@ export default function CalendarPage() {
       startDate.setHours(0, 0, 0, 0);
       endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 6);
+      endDate.setHours(23, 59, 59, 999);
+    } else {
+      // Місяць
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       endDate.setHours(23, 59, 59, 999);
     }
 
@@ -144,13 +150,25 @@ export default function CalendarPage() {
   
   const goPrev = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - (viewMode === "day" ? 1 : 7));
+    if (viewMode === "day") {
+      newDate.setDate(newDate.getDate() - 1);
+    } else if (viewMode === "week") {
+      newDate.setDate(newDate.getDate() - 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() - 1);
+    }
     setCurrentDate(newDate);
   };
   
   const goNext = () => {
     const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + (viewMode === "day" ? 1 : 7));
+    if (viewMode === "day") {
+      newDate.setDate(newDate.getDate() + 1);
+    } else if (viewMode === "week") {
+      newDate.setDate(newDate.getDate() + 7);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
     setCurrentDate(newDate);
   };
 
@@ -251,6 +269,35 @@ export default function CalendarPage() {
     });
   };
 
+  // Дні місяця
+  const getMonthDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Перший день місяця
+    const firstDay = new Date(year, month, 1);
+    // Останній день місяця
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // День тижня першого дня (0 = неділя, 1 = понеділок)
+    let startDayOfWeek = firstDay.getDay();
+    startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // Конвертуємо в понеділок = 0
+    
+    const days: (Date | null)[] = [];
+    
+    // Пусті клітинки до першого дня
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Дні місяця
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      days.push(new Date(year, month, d));
+    }
+    
+    return days;
+  };
+
   const weekDays = getWeekDays();
   const today = new Date();
 
@@ -304,7 +351,9 @@ export default function CalendarPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {viewMode === "day" 
                 ? currentDate.toLocaleDateString("uk-UA", { weekday: "long", day: "numeric", month: "long" })
-                : `${weekDays[0].toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} - ${weekDays[6].toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}`
+                : viewMode === "week"
+                ? `${weekDays[0].toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} - ${weekDays[6].toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}`
+                : currentDate.toLocaleDateString("uk-UA", { month: "long", year: "numeric" })
               }
             </h2>
 
@@ -329,6 +378,16 @@ export default function CalendarPage() {
                 }`}
               >
                 Тиждень
+              </button>
+              <button
+                onClick={() => setViewMode("month")}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === "month"
+                    ? "bg-white dark:bg-white/20 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                Місяць
               </button>
             </div>
           </div>
@@ -437,6 +496,64 @@ export default function CalendarPage() {
                     })}
                   </div>
                 ))}
+              </div>
+            </div>
+          ) : (
+            /* Month View */
+            <div>
+              {/* Header з днями тижня */}
+              <div className="grid grid-cols-7 border-b border-gray-200 dark:border-white/10">
+                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"].map((day, i) => (
+                  <div key={i} className="p-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              {/* Дні місяця */}
+              <div className="grid grid-cols-7">
+                {getMonthDays().map((day, i) => {
+                  const dayAppointments = day ? appointments.filter(apt => isSameDay(new Date(apt.start_time), day)) : [];
+                  const isToday = day && isSameDay(day, today);
+                  
+                  return (
+                    <div
+                      key={i}
+                      className={`min-h-[100px] p-2 border-b border-r border-gray-100 dark:border-white/5 ${
+                        day ? "hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer" : "bg-gray-50 dark:bg-white/5"
+                      } ${isToday ? "bg-violet-50 dark:bg-violet-500/10" : ""}`}
+                      onClick={() => day && (setCurrentDate(day), setViewMode("day"))}
+                    >
+                      {day && (
+                        <>
+                          <div className={`text-sm font-medium mb-1 ${
+                            isToday 
+                              ? "w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center" 
+                              : "text-gray-900 dark:text-white"
+                          }`}>
+                            {day.getDate()}
+                          </div>
+                          <div className="space-y-1">
+                            {dayAppointments.slice(0, 3).map(apt => (
+                              <div
+                                key={apt.id}
+                                className="text-xs p-1 rounded truncate"
+                                style={{ backgroundColor: apt.service?.color + "30", color: apt.service?.color }}
+                                onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
+                              >
+                                {formatTime(apt.start_time)} {apt.client?.full_name?.split(" ")[0]}
+                              </div>
+                            ))}
+                            {dayAppointments.length > 3 && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                +{dayAppointments.length - 3} ще
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
