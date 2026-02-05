@@ -194,8 +194,8 @@ export default function ClientsPage() {
       <PullToRefreshWrapper pullDistance={pullDistance} isRefreshing={isRefreshing}>
         <div className="min-h-full pb-safe">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        
-        {/* Header */}
+            
+            {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -695,10 +695,10 @@ export default function ClientsPage() {
           </div>
         )}
 
-        <Toaster />
-      </div>
-    </div>
-    </PullToRefreshWrapper>
+            <Toaster />
+          </div>
+        </div>
+      </PullToRefreshWrapper>
     </>
   );
 }
