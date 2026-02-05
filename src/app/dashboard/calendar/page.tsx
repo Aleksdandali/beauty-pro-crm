@@ -8,7 +8,7 @@ import {
   Phone, MoreVertical, AlertCircle
 } from "lucide-react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { PullToRefreshIndicator } from "@/components/PullToRefresh";
+import { PullToRefreshIndicator, PullToRefreshWrapper } from "@/components/PullToRefresh";
 
 const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -340,13 +340,18 @@ export default function CalendarPage() {
     await loadFormData();
   };
 
-  const { isRefreshing, pullDistance } = usePullToRefresh(handleRefresh);
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh(handleRefresh);
 
   return (
     <>
-      <PullToRefreshIndicator isRefreshing={isRefreshing} pullDistance={pullDistance} />
-      <div className="min-h-full pb-safe">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <PullToRefreshIndicator 
+        isRefreshing={isRefreshing} 
+        pullDistance={pullDistance} 
+        threshold={threshold}
+      />
+      <PullToRefreshWrapper pullDistance={pullDistance} isRefreshing={isRefreshing}>
+        <div className="min-h-full pb-safe">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -968,8 +973,9 @@ export default function CalendarPage() {
           </div>
         )}
 
-      </div>
-    </div>
+          </div>
+        </div>
+      </PullToRefreshWrapper>
     </>
   );
 }

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { PullToRefreshIndicator } from "@/components/PullToRefresh";
+import { PullToRefreshIndicator, PullToRefreshWrapper } from "@/components/PullToRefresh";
 
 const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -182,13 +182,18 @@ export default function ClientsPage() {
     await loadClients();
   };
 
-  const { isRefreshing, pullDistance } = usePullToRefresh(handleRefresh);
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh(handleRefresh);
 
   return (
     <>
-      <PullToRefreshIndicator isRefreshing={isRefreshing} pullDistance={pullDistance} />
-      <div className="min-h-full pb-safe">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <PullToRefreshIndicator 
+        isRefreshing={isRefreshing} 
+        pullDistance={pullDistance} 
+        threshold={threshold}
+      />
+      <PullToRefreshWrapper pullDistance={pullDistance} isRefreshing={isRefreshing}>
+        <div className="min-h-full pb-safe">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
         {/* Header */}
         <div className="mb-6 sm:mb-8">
@@ -691,8 +696,10 @@ export default function ClientsPage() {
         )}
 
       </div>
-      <Toaster />
-    </div>
+        <Toaster />
+          </div>
+        </div>
+      </PullToRefreshWrapper>
     </>
   );
 }
