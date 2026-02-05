@@ -1,4 +1,4 @@
-// ShinePRO CRM v2 - test deploy
+// ShinePRO CRM v2 - auto-deploy test after reconnect
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "./providers";
