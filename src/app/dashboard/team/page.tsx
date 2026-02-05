@@ -145,7 +145,7 @@ export default function TeamPage() {
 
   // Pull to refresh
   const handleRefresh = async () => {
-    await loadStaff();
+    await loadMasters();
   };
 
   const { isRefreshing, pullDistance } = usePullToRefresh(handleRefresh);
