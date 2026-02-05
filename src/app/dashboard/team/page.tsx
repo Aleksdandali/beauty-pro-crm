@@ -8,6 +8,8 @@ import {
   Clock, CheckCircle
 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefresh";
 
 const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -141,8 +143,17 @@ export default function TeamPage() {
     active: masters.filter(m => m.is_active).length,
   };
 
+  // Pull to refresh
+  const handleRefresh = async () => {
+    await loadStaff();
+  };
+
+  const { isRefreshing, pullDistance } = usePullToRefresh(handleRefresh);
+
   return (
-    <div className="min-h-full pb-safe">
+    <>
+      <PullToRefreshIndicator isRefreshing={isRefreshing} pullDistance={pullDistance} />
+      <div className="min-h-full pb-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
         {/* Header */}
@@ -475,5 +486,6 @@ export default function TeamPage() {
       </div>
       <Toaster />
     </div>
+    </>
   );
 }

@@ -7,6 +7,8 @@ import {
   Edit, Trash2, ChevronRight, Palette, MoreVertical,
   Tag, Filter
 } from "lucide-react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefresh";
 
 const SALON_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -185,8 +187,17 @@ export default function ServicesPage() {
 
   const categories = [...new Set(services.map(s => s.category).filter(Boolean))];
 
+  // Pull to refresh
+  const handleRefresh = async () => {
+    await loadServices();
+  };
+
+  const { isRefreshing, pullDistance } = usePullToRefresh(handleRefresh);
+
   return (
-    <div className="min-h-full pb-safe">
+    <>
+      <PullToRefreshIndicator isRefreshing={isRefreshing} pullDistance={pullDistance} />
+      <div className="min-h-full pb-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* Header */}
@@ -500,5 +511,6 @@ export default function ServicesPage() {
 
       </div>
     </div>
+    </>
   );
 }
