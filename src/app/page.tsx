@@ -1,743 +1,822 @@
-"use client";
+'use client'
 
-import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import { 
-  Calendar, 
-  Users, 
-  BarChart3, 
-  Wallet, 
-  Bell, 
-  Package,
-  Check,
-  ChevronDown,
-  Menu,
-  X,
-  Star,
-  ArrowRight,
-  Sparkles
-} from "lucide-react";
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 
-// Animation hook for scroll-triggered fade-in
-function useInView(threshold = 0.1) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
+// ============ ANIMATION HOOK ============
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-        }
-      },
+      ([entry]) => { if (entry.isIntersecting) setIsVisible(true) },
       { threshold }
-    );
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [threshold])
 
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [threshold]);
-
-  return { ref, isInView };
+  return { ref, isVisible }
 }
 
-// Animated section wrapper
-function AnimatedSection({ 
-  children, 
-  className = "",
-  delay = 0 
-}: { 
-  children: React.ReactNode; 
-  className?: string;
-  delay?: number;
-}) {
-  const { ref, isInView } = useInView();
-  
+function AnimateIn({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const { ref, isVisible } = useInView()
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ${className}`}
+      className={className}
       style={{
-        opacity: isInView ? 1 : 0,
-        transform: isInView ? 'translateY(0)' : 'translateY(30px)',
-        transitionDelay: `${delay}ms`
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(32px)',
+        transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
       }}
     >
       {children}
     </div>
-  );
+  )
 }
 
-// Feature card data
-const features = [
-  {
-    icon: Calendar,
-    title: "Онлайн-запис",
-    description: "Клієнти записуються 24/7 через ваш сайт або соцмережі. Автоматичне підтвердження та синхронізація з календарем."
-  },
-  {
-    icon: Users,
-    title: "База клієнтів + RFM",
-    description: "Повна історія візитів, вподобання та RFM-сегментація. Знайте хто ваші VIP, а хто потребує уваги."
-  },
-  {
-    icon: BarChart3,
-    title: "Аналітика",
-    description: "Дашборд з виручкою, популярними послугами, завантаженістю майстрів. Приймайте рішення на основі даних."
-  },
-  {
-    icon: Wallet,
-    title: "Фінанси",
-    description: "Облік доходів та витрат, зарплати майстрів, комісії. Завжди знайте скільки заробляєте."
-  },
-  {
-    icon: Bell,
-    title: "Нагадування",
-    description: "Автоматичні нагадування клієнтам через Telegram або SMS за 24 години до візиту. Менше no-show."
-  },
-  {
-    icon: Package,
-    title: "Склад",
-    description: "Облік матеріалів та косметики. Сповіщення коли товар закінчується. Контроль списання."
-  }
-];
+// ============ COMPONENTS ============
 
-// Pricing plans
-const plans = [
-  {
-    name: "Free",
-    price: "0",
-    description: "Для початку",
-    features: [
-      "До 2 майстрів",
-      "До 100 клієнтів",
-      "Базовий календар",
-      "Email підтримка"
-    ],
-    cta: "Почати безкоштовно",
-    popular: false
-  },
-  {
-    name: "Pro",
-    price: "499",
-    description: "Для зростаючих салонів",
-    features: [
-      "До 10 майстрів",
-      "До 1000 клієнтів",
-      "Telegram нагадування",
-      "Повна аналітика",
-      "RFM сегментація",
-      "Пріоритетна підтримка"
-    ],
-    cta: "Спробувати Pro",
-    popular: true
-  },
-  {
-    name: "Business",
-    price: "1499",
-    description: "Для мережі салонів",
-    features: [
-      "Необмежено майстрів",
-      "Необмежено клієнтів",
-      "SMS нагадування",
-      "API інтеграції",
-      "Мультифіліальність",
-      "Персональний менеджер"
-    ],
-    cta: "Зв'язатись з нами",
-    popular: false
-  }
-];
+function Header() {
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
-// Testimonials
-const testimonials = [
-  {
-    name: "Олена Коваленко",
-    role: "Власниця Beauty Lab",
-    avatar: "ОК",
-    content: "Нарешті все в одному місці! Раніше записували в блокнот, потім Excel... Тепер все автоматизовано. Клієнти самі записуються, отримують нагадування. Кількість no-show зменшилась на 70%.",
-    rating: 5
-  },
-  {
-    name: "Марина Степаненко",
-    role: "Nail Studio Kyiv",
-    avatar: "МС",
-    content: "Аналітика — це щось! Тепер бачу хто з майстрів приносить найбільше, які послуги популярні. За 3 місяці збільшили виручку на 40% просто оптимізувавши розклад.",
-    rating: 5
-  },
-  {
-    name: "Андрій Мельник",
-    role: "Barbershop BLADE",
-    avatar: "АМ",
-    content: "Перейшли з іншої CRM — небо і земля. Інтерфейс інтуїтивний, команда освоїла за день. Telegram-бот для записів — це must have для сучасного барбершопу.",
-    rating: 5
-  }
-];
-
-// FAQ items
-const faqItems = [
-  {
-    question: "Чи потрібна банківська карта для реєстрації?",
-    answer: "Ні, для безкоштовного тарифу карта не потрібна. Ви можете користуватись Free-планом скільки завгодно без жодних платежів."
-  },
-  {
-    question: "Чи можна імпортувати клієнтів з Excel?",
-    answer: "Так! Ми підтримуємо імпорт з Excel та CSV файлів. Просто завантажте файл і система автоматично розпізнає колонки з даними клієнтів."
-  },
-  {
-    question: "Чи працює система на телефоні?",
-    answer: "Так, Beauty Pro CRM повністю адаптована для мобільних пристроїв. Ви можете керувати салоном зі смартфона так само зручно, як з комп'ютера."
-  },
-  {
-    question: "Як підключити Telegram-нагадування?",
-    answer: "В налаштуваннях салону є розділ 'Інтеграції'. Підключення Telegram займає 2 хвилини — просто авторизуйте бота і готово. Доступно на тарифах Pro та Business."
-  }
-];
-
-export default function LandingPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-
-  // Handle header background on scroll
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-x-hidden">
-      {/* Fixed Header */}
-      <header 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? "bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/10" 
-            : "bg-transparent"
-        }`}
+    <>
+      <header
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
+        style={{
+          background: scrolled ? 'rgba(7, 7, 10, 0.85)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Beauty Pro
-              </span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">
-                Можливості
-              </a>
-              <a href="#pricing" className="text-sm text-gray-400 hover:text-white transition-colors">
-                Ціни
-              </a>
-              <a href="#testimonials" className="text-sm text-gray-400 hover:text-white transition-colors">
-                Відгуки
-              </a>
-            </nav>
-
-            {/* Desktop CTA */}
-            <div className="hidden md:flex items-center gap-4">
-              <Link 
-                href="/login"
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
-              >
-                Увійти
-              </Link>
-              <Link 
-                href="/register"
-                className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-semibold rounded-xl hover:from-violet-500 hover:to-fuchsia-500 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
-              >
-                Спробувати безкоштовно
-              </Link>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #c084fc 0%, #e879a8 100%)' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
             </div>
+            <span className="text-lg font-semibold tracking-tight text-white/90 group-hover:text-white transition-colors" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              Beauty Pro
+            </span>
+          </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+          <nav className="hidden md:flex items-center gap-1">
+            {[
+              { label: 'Можливості', href: '#features' },
+              { label: 'Ціни', href: '#pricing' },
+              { label: 'Відгуки', href: '#testimonials' },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="px-4 py-2 text-[15px] text-white/50 hover:text-white transition-colors duration-300 rounded-lg hover:bg-white/[0.04]"
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              href="/login"
+              className="px-4 py-2 text-[15px] text-white/60 hover:text-white transition-colors duration-300"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+              Увійти
+            </Link>
+            <Link
+              href="/register"
+              className="group relative px-5 py-2.5 text-[15px] font-medium text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
+              style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' }}
+            >
+              <span className="relative z-10">Спробувати безкоштовно</span>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(135deg, #9333ea 0%, #db2777 100%)' }} />
+            </Link>
           </div>
-        </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10">
-            <div className="px-4 py-6 space-y-4">
-              <a 
-                href="#features" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-lg text-gray-300 hover:text-white transition-colors"
-              >
-                Можливості
-              </a>
-              <a 
-                href="#pricing" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-lg text-gray-300 hover:text-white transition-colors"
-              >
-                Ціни
-              </a>
-              <a 
-                href="#testimonials" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="block text-lg text-gray-300 hover:text-white transition-colors"
-              >
-                Відгуки
-              </a>
-              <div className="pt-4 space-y-3 border-t border-white/10">
-                <Link 
-                  href="/login"
-                  className="block w-full text-center py-3 text-gray-300 border border-white/20 rounded-xl hover:bg-white/5 transition-colors"
-                >
-                  Увійти
-                </Link>
-                <Link 
-                  href="/register"
-                  className="block w-full text-center py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl"
-                >
-                  Спробувати безкоштовно
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+          <button
+            className="md:hidden p-2 text-white/60 hover:text-white"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              {menuOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </>
+              ) : (
+                <>
+                  <line x1="4" y1="8" x2="20" y2="8" />
+                  <line x1="4" y1="16" x2="20" y2="16" />
+                </>
+              )}
+            </svg>
+          </button>
+        </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 md:pt-40 pb-20 md:pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-500/10 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 blur-[120px] rounded-full pointer-events-none" />
-        
-        <div className="max-w-5xl mx-auto text-center relative">
-          <AnimatedSection>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-300 mb-8">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              14 днів безкоштовно • Без карти
-            </div>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={100}>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight leading-[1.1]">
-              CRM для салонів краси,
-              <br />
-              <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-400 bg-clip-text text-transparent">
-                яка працює на вас
-              </span>
-            </h1>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={200}>
-            <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Керуйте записами, клієнтами та фінансами в одному місці. 
-              Автоматизуйте рутину та зосередьтесь на тому, що важливо.
-            </p>
-          </AnimatedSection>
-          
-          <AnimatedSection delay={300}>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                href="/register"
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl hover:from-violet-500 hover:to-fuchsia-500 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 flex items-center justify-center gap-2 group"
-              >
-                Почати безкоштовно
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                href="/login"
-                className="w-full sm:w-auto px-8 py-4 bg-white/5 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/10 transition-all"
-              >
-                Подивитись демо
-              </Link>
-            </div>
-          </AnimatedSection>
+      {/* Mobile menu */}
+      <div
+        className="fixed inset-0 z-40 md:hidden transition-all duration-500"
+        style={{
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? 'auto' : 'none',
+          background: 'rgba(7, 7, 10, 0.97)',
+          backdropFilter: 'blur(24px)',
+        }}
+      >
+        <div className="flex flex-col items-center justify-center h-full gap-6">
+          {[
+            { label: 'Можливості', href: '#features' },
+            { label: 'Ціни', href: '#pricing' },
+            { label: 'Відгуки', href: '#testimonials' },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="text-2xl text-white/70 hover:text-white transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
+          <div className="flex flex-col gap-3 mt-4 w-64">
+            <Link href="/login" onClick={() => setMenuOpen(false)} className="text-center py-3 text-white/60 border border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+              Увійти
+            </Link>
+            <Link href="/register" onClick={() => setMenuOpen(false)} className="text-center py-3 text-white font-medium rounded-xl" style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' }}>
+              Спробувати безкоштовно
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
 
-          {/* Dashboard Mockup */}
-          <AnimatedSection delay={400}>
-            <div className="mt-16 md:mt-20 relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent z-10 pointer-events-none" />
-              <div className="bg-[#111111] rounded-2xl border border-white/10 shadow-2xl shadow-violet-500/10 overflow-hidden">
-                {/* Window Controls */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-[#0a0a0a]">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                  <div className="flex-1 text-center">
-                    <span className="text-xs text-gray-500">Beauty Pro CRM — Dashboard</span>
-                  </div>
+function Hero() {
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[72px]" style={{ background: '#07070a' }}>
+      {/* Ambient background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-[0.07]" style={{ background: 'radial-gradient(circle, #a855f7 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full opacity-[0.05]" style={{ background: 'radial-gradient(circle, #ec4899 0%, transparent 70%)' }} />
+        <div className="absolute top-[30%] right-[20%] w-[300px] h-[300px] rounded-full opacity-[0.04]" style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)' }} />
+        {/* Grid */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '64px 64px' }} />
+        {/* Noise */}
+        <div className="absolute inset-0 opacity-[0.35]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")` }} />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+          {/* Left side - text */}
+          <div className="max-w-xl">
+            <AnimateIn>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] mb-8">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[13px] text-white/50 tracking-wide">14 днів безкоштовно • Без карти</span>
+              </div>
+            </AnimateIn>
+
+            <AnimateIn delay={0.1}>
+              <h1 className="text-[clamp(2.25rem,5.5vw,4rem)] leading-[1.08] font-bold tracking-[-0.03em] text-white mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+                CRM для салонів краси,{' '}
+                <span className="italic" style={{ background: 'linear-gradient(135deg, #c084fc 0%, #f472b6 50%, #fb923c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  яка працює
+                </span>
+                {' '}на вас
+              </h1>
+            </AnimateIn>
+
+            <AnimateIn delay={0.2}>
+              <p className="text-lg sm:text-xl text-white/40 leading-relaxed mb-10 max-w-lg">
+                Керуйте записами, клієнтами та фінансами в одному місці. Автоматизуйте рутину та зосередьтесь на тому, що важливо.
+              </p>
+            </AnimateIn>
+
+            <AnimateIn delay={0.3}>
+              <div className="flex flex-wrap gap-4">
+                <Link
+                  href="/register"
+                  className="group relative inline-flex items-center gap-2 px-7 py-3.5 text-[15px] font-semibold text-white rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-purple-500/25 hover:scale-[1.02]"
+                  style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' }}
+                >
+                  <span className="relative z-10">Почати безкоштовно</span>
+                  <svg className="relative z-10 w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(135deg, #9333ea 0%, #db2777 100%)' }} />
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 text-[15px] font-medium text-white/60 rounded-2xl border border-white/[0.08] hover:border-white/[0.16] hover:text-white hover:bg-white/[0.03] transition-all duration-300"
+                >
+                  Подивитись демо
+                </Link>
+              </div>
+            </AnimateIn>
+
+            <AnimateIn delay={0.5}>
+              <div className="flex items-center gap-6 mt-12">
+                <div className="flex -space-x-2">
+                  {['#c084fc', '#f472b6', '#34d399', '#fbbf24'].map((color, i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[#07070a] flex items-center justify-center text-[11px] font-medium text-white" style={{ background: color, opacity: 0.8 }}>
+                      {['ОК', 'МС', 'АМ', 'ЛВ'][i]}
+                    </div>
+                  ))}
                 </div>
-                {/* Dashboard Content */}
-                <div className="p-4 md:p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4">
+                <div>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    ))}
+                  </div>
+                  <p className="text-[13px] text-white/30">500+ салонів вже з нами</p>
+                </div>
+              </div>
+            </AnimateIn>
+          </div>
+
+          {/* Right side - Dashboard mockup */}
+          <AnimateIn delay={0.2} className="hidden lg:block">
+            <div className="relative">
+              {/* Glow behind card */}
+              <div className="absolute inset-0 blur-[80px] opacity-30" style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' }} />
+
+              <div className="relative rounded-2xl border border-white/[0.08] overflow-hidden" style={{ background: 'linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)' }}>
+                {/* Window bar */}
+                <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.06]">
+                  <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                  </div>
+                  <div className="flex-1 text-center text-[12px] text-white/20 tracking-wide">Beauty Pro CRM — Dashboard</div>
+                </div>
+
+                {/* Dashboard content */}
+                <div className="p-5 space-y-4">
+                  {/* Stats row */}
+                  <div className="grid grid-cols-4 gap-3">
                     {[
-                      { label: "Виручка сьогодні", value: "₴ 12,450", color: "from-emerald-500 to-teal-500" },
-                      { label: "Записи на сьогодні", value: "18", color: "from-blue-500 to-cyan-500" },
-                      { label: "Нові клієнти", value: "+12", color: "from-violet-500 to-purple-500" },
-                      { label: "Завантаженість", value: "87%", color: "from-fuchsia-500 to-pink-500" }
+                      { label: 'Виручка', value: '₴ 12,450', color: '#a855f7', change: '+18%' },
+                      { label: 'Записи', value: '18', color: '#ec4899', change: '+5' },
+                      { label: 'Клієнти', value: '+12', color: '#34d399', change: 'нові' },
+                      { label: 'Заповненість', value: '87%', color: '#fbbf24', change: '↑ 12%' },
                     ].map((stat, i) => (
-                      <div key={i} className="bg-white/5 rounded-xl p-3 md:p-4 border border-white/5">
-                        <p className="text-[10px] md:text-xs text-gray-500 mb-1">{stat.label}</p>
-                        <p className={`text-lg md:text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                          {stat.value}
-                        </p>
+                      <div key={i} className="rounded-xl p-3 border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                        <p className="text-[10px] text-white/30 mb-1.5">{stat.label}</p>
+                        <p className="text-lg font-bold tracking-tight" style={{ color: stat.color }}>{stat.value}</p>
+                        <p className="text-[10px] mt-1" style={{ color: `${stat.color}88` }}>{stat.change}</p>
                       </div>
                     ))}
                   </div>
-                  {/* Calendar Preview */}
-                  <div className="bg-white/5 rounded-xl p-3 md:p-4 border border-white/5">
+
+                  {/* Chart placeholder */}
+                  <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs md:text-sm font-medium text-gray-300">Записи на сьогодні</span>
-                      <span className="text-[10px] md:text-xs text-gray-500">5 лютого 2026</span>
+                      <p className="text-[11px] text-white/30">Виручка за тиждень</p>
+                      <p className="text-[11px] font-medium" style={{ color: '#a855f7' }}>₴ 87,200</p>
                     </div>
-                    <div className="space-y-2">
-                      {[
-                        { time: "10:00", client: "Марія К.", service: "Стрижка + Фарбування", master: "Оксана", color: "bg-violet-500" },
-                        { time: "11:30", client: "Анна С.", service: "Манікюр", master: "Юлія", color: "bg-fuchsia-500" },
-                        { time: "14:00", client: "Олена М.", service: "Педикюр", master: "Катерина", color: "bg-pink-500" }
-                      ].map((apt, i) => (
-                        <div key={i} className="flex items-center gap-3 p-2 md:p-3 bg-white/5 rounded-lg">
-                          <div className={`w-1 h-8 md:h-10 ${apt.color} rounded-full`} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs md:text-sm font-medium text-white truncate">{apt.client}</p>
-                            <p className="text-[10px] md:text-xs text-gray-500 truncate">{apt.service} • {apt.master}</p>
-                          </div>
-                          <span className="text-[10px] md:text-xs text-gray-400">{apt.time}</span>
-                        </div>
+                    <div className="flex items-end gap-1.5 h-16">
+                      {[40, 65, 45, 80, 60, 90, 75].map((h, i) => (
+                        <div key={i} className="flex-1 rounded-md transition-all" style={{ height: `${h}%`, background: `linear-gradient(to top, rgba(168,85,247,${0.2 + i * 0.08}), rgba(236,72,153,${0.3 + i * 0.08}))` }} />
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-2">
+                      {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'].map((d, i) => (
+                        <span key={i} className="text-[9px] text-white/20 flex-1 text-center">{d}</span>
                       ))}
                     </div>
                   </div>
+
+                  {/* Appointments */}
+                  <div className="rounded-xl border border-white/[0.06] p-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <p className="text-[11px] text-white/30 mb-3">Найближчі записи</p>
+                    {[
+                      { name: 'Марія К.', service: 'Стрижка + Фарбування', time: '10:00', master: 'Оксана' },
+                      { name: 'Анна С.', service: 'Манікюр', time: '11:30', master: 'Юлія' },
+                      { name: 'Олена М.', service: 'Педикюр', time: '14:00', master: 'Катерина' },
+                    ].map((apt, i) => (
+                      <div key={i} className={`flex items-center justify-between py-2.5 ${i < 2 ? 'border-b border-white/[0.04]' : ''}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-medium text-white" style={{ background: ['#a855f7', '#ec4899', '#6366f1'][i], opacity: 0.7 }}>
+                            {apt.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <p className="text-[12px] text-white/70">{apt.name}</p>
+                            <p className="text-[10px] text-white/25">{apt.service} • {apt.master}</p>
+                          </div>
+                        </div>
+                        <span className="text-[12px] font-medium text-white/40">{apt.time}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </AnimatedSection>
+          </AnimateIn>
         </div>
-      </section>
+      </div>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 md:py-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <AnimatedSection>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                Все для вашого салону
-              </h2>
-              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                Потужні інструменти, які спростять управління та допоможуть заробляти більше
-              </p>
-            </div>
-          </AnimatedSection>
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32" style={{ background: 'linear-gradient(to bottom, transparent, #07070a)' }} />
+    </section>
+  )
+}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <AnimatedSection key={i} delay={i * 100}>
-                <div className="group h-full p-6 md:p-8 bg-[#111111] rounded-2xl border border-white/5 hover:border-violet-500/30 transition-all hover:shadow-xl hover:shadow-violet-500/5">
-                  <div className="w-12 h-12 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:from-violet-500/30 group-hover:to-fuchsia-500/30 transition-colors">
-                    <feature.icon className="w-6 h-6 text-violet-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-white">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </AnimatedSection>
-            ))}
+function Features() {
+  const features = [
+    {
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+      ),
+      title: 'Онлайн-запис',
+      desc: 'Клієнти записуються 24/7 через ваш сайт або Telegram. Автоматичне підтвердження та синхронізація з календарем.',
+      color: '#a855f7',
+    },
+    {
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      ),
+      title: 'База клієнтів + RFM',
+      desc: 'Повна історія візитів та вподобань. RFM-сегментація допомагає зрозуміти хто ваші VIP, а хто потребує уваги.',
+      color: '#ec4899',
+    },
+    {
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      ),
+      title: 'Аналітика',
+      desc: 'Дашборд з виручкою, популярними послугами та завантаженістю майстрів. Приймайте рішення на даних.',
+      color: '#6366f1',
+    },
+    {
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      ),
+      title: 'Фінанси',
+      desc: 'Облік доходів та витрат, зарплати майстрів, комісії. Завжди знайте скільки заробляєте реально.',
+      color: '#34d399',
+    },
+    {
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+        </svg>
+      ),
+      title: 'Нагадування',
+      desc: 'Автоматичні нагадування через Telegram або SMS за 24 години до візиту. Менше пропущених записів.',
+      color: '#f59e0b',
+    },
+    {
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+      ),
+      title: 'Склад',
+      desc: 'Облік матеріалів та косметики. Сповіщення коли товар закінчується. Контроль списання по клієнтах.',
+      color: '#f472b6',
+    },
+  ]
+
+  return (
+    <section id="features" className="relative py-28 sm:py-36" style={{ background: '#07070a' }}>
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <AnimateIn>
+          <div className="text-center mb-16 sm:mb-20">
+            <p className="text-[13px] font-medium tracking-[0.2em] uppercase mb-4" style={{ color: '#a855f7' }}>Можливості</p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-white mb-5" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Все для вашого салону
+            </h2>
+            <p className="text-lg text-white/35 max-w-xl mx-auto">Потужні інструменти, які спростять управління та допоможуть заробляти більше</p>
           </div>
-        </div>
-      </section>
+        </AnimateIn>
 
-      {/* How It Works Section */}
-      <section className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#111111]/50">
-        <div className="max-w-5xl mx-auto">
-          <AnimatedSection>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                Як це працює
-              </h2>
-              <p className="text-lg text-gray-400">
-                Почніть за 10 хвилин — без навчання та складних налаштувань
-              </p>
-            </div>
-          </AnimatedSection>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {features.map((f, i) => (
+            <AnimateIn key={i} delay={i * 0.08}>
+              <div className="group relative p-6 sm:p-7 rounded-2xl border border-white/[0.06] hover:border-white/[0.12] transition-all duration-500 h-full" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                {/* Hover glow */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: `radial-gradient(circle at 50% 0%, ${f.color}08, transparent 70%)` }} />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
-            {[
-              { step: "01", title: "Зареєструйтесь", description: "Створіть акаунт за 2 хвилини. Без карти, без зобов'язань.", time: "2 хв" },
-              { step: "02", title: "Налаштуйте салон", description: "Додайте послуги, ціни та майстрів. Імпортуйте клієнтів з Excel.", time: "5 хв" },
-              { step: "03", title: "Приймайте записи", description: "Готово! Клієнти можуть записуватись, а ви — керувати всім з телефона.", time: "∞" }
-            ].map((item, i) => (
-              <AnimatedSection key={i} delay={i * 150}>
-                <div className="relative">
-                  {/* Connector line */}
-                  {i < 2 && (
-                    <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-px bg-gradient-to-r from-violet-500/50 to-transparent" />
-                  )}
-                  <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl text-2xl font-bold mb-6 shadow-lg shadow-violet-500/25">
-                      {item.step}
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-white">{item.title}</h3>
-                    <p className="text-gray-400 mb-3">{item.description}</p>
-                    <span className="inline-block px-3 py-1 bg-white/5 rounded-full text-xs text-gray-500">
-                      {item.time}
-                    </span>
+                <div className="relative z-10">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 border border-white/[0.06]" style={{ color: f.color, background: `${f.color}0a` }}>
+                    {f.icon}
                   </div>
+                  <h3 className="text-[17px] font-semibold text-white mb-2.5 tracking-tight">{f.title}</h3>
+                  <p className="text-[15px] text-white/35 leading-relaxed">{f.desc}</p>
                 </div>
-              </AnimatedSection>
-            ))}
-          </div>
+              </div>
+            </AnimateIn>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  )
+}
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 md:py-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <AnimatedSection>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                Прості та прозорі ціни
-              </h2>
-              <p className="text-lg text-gray-400">
-                Оберіть план під розмір вашого салону. Змінюйте в будь-який момент.
-              </p>
-            </div>
-          </AnimatedSection>
+function HowItWorks() {
+  const steps = [
+    { num: '01', title: 'Зареєструйтесь', desc: 'Створіть акаунт за 2 хвилини. Без карти та зобов\'язань.', time: '2 хв', color: '#a855f7' },
+    { num: '02', title: 'Налаштуйте салон', desc: 'Додайте послуги, ціни та майстрів. Імпортуйте клієнтів з Excel.', time: '5 хв', color: '#ec4899' },
+    { num: '03', title: 'Приймайте записи', desc: 'Готово! Клієнти записуються онлайн, а ви керуєте всім з телефону.', time: '∞', color: '#34d399' },
+  ]
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {plans.map((plan, i) => (
-              <AnimatedSection key={i} delay={i * 100}>
-                <div 
-                  className={`relative h-full p-6 md:p-8 rounded-2xl border transition-all ${
-                    plan.popular 
-                      ? "bg-gradient-to-b from-violet-500/10 to-fuchsia-500/10 border-violet-500/30 shadow-xl shadow-violet-500/10" 
-                      : "bg-[#111111] border-white/5 hover:border-white/10"
-                  }`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-4 py-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-semibold rounded-full">
-                        Найпопулярніший
-                      </span>
-                    </div>
-                  )}
-                  <div className="mb-6">
-                    <h3 className="text-xl font-semibold mb-1">{plan.name}</h3>
-                    <p className="text-sm text-gray-500">{plan.description}</p>
-                  </div>
-                  <div className="mb-6">
-                    <span className="text-4xl md:text-5xl font-bold">{plan.price}</span>
-                    <span className="text-gray-500">₴/міс</span>
-                  </div>
-                  <ul className="space-y-3 mb-8">
-                    {plan.features.map((feature, j) => (
-                      <li key={j} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-violet-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-300 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href="/register"
-                    className={`block w-full py-3 text-center font-semibold rounded-xl transition-all ${
-                      plan.popular
-                        ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500 shadow-lg shadow-violet-500/25"
-                        : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Link>
+  return (
+    <section className="relative py-28 sm:py-36" style={{ background: '#07070a' }}>
+      {/* Subtle divider */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.2), transparent)' }} />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <AnimateIn>
+          <div className="text-center mb-16 sm:mb-20">
+            <p className="text-[13px] font-medium tracking-[0.2em] uppercase mb-4" style={{ color: '#ec4899' }}>Як це працює</p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-white mb-5" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Почніть за 10 хвилин
+            </h2>
+            <p className="text-lg text-white/35">Без навчання та складних налаштувань</p>
+          </div>
+        </AnimateIn>
+
+        <div className="grid md:grid-cols-3 gap-8 sm:gap-12 relative">
+          {/* Connector line */}
+          <div className="hidden md:block absolute top-[52px] left-[16%] right-[16%] h-px" style={{ background: 'linear-gradient(90deg, #a855f7, #ec4899, #34d399)', opacity: 0.15 }} />
+
+          {steps.map((step, i) => (
+            <AnimateIn key={i} delay={i * 0.15}>
+              <div className="text-center">
+                <div className="relative inline-flex items-center justify-center w-[72px] h-[72px] rounded-2xl mb-6 border border-white/[0.08]" style={{ background: `${step.color}0a` }}>
+                  <span className="text-2xl font-bold tracking-tight" style={{ color: step.color }}>{step.num}</span>
                 </div>
-              </AnimatedSection>
-            ))}
-          </div>
+                <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">{step.title}</h3>
+                <p className="text-[15px] text-white/35 leading-relaxed mb-4">{step.desc}</p>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium border border-white/[0.06]" style={{ color: `${step.color}cc`, background: `${step.color}08` }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                  {step.time}
+                </span>
+              </div>
+            </AnimateIn>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
+  )
+}
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 md:py-32 px-4 sm:px-6 lg:px-8 bg-[#111111]/50">
-        <div className="max-w-6xl mx-auto">
-          <AnimatedSection>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                Нас обирають професіонали
-              </h2>
-              <p className="text-lg text-gray-400">
-                Понад 500+ салонів вже використовують Beauty Pro CRM
-              </p>
-            </div>
-          </AnimatedSection>
+function Pricing() {
+  const plans = [
+    {
+      name: 'Free',
+      subtitle: 'Для початку',
+      price: '0',
+      features: ['До 2 майстрів', 'До 100 клієнтів', 'Базовий календар', 'Email підтримка'],
+      cta: 'Почати безкоштовно',
+      popular: false,
+      color: '#a855f7',
+    },
+    {
+      name: 'Pro',
+      subtitle: 'Для зростаючих салонів',
+      price: '499',
+      features: ['До 10 майстрів', 'До 1000 клієнтів', 'Telegram нагадування', 'Повна аналітика', 'RFM сегментація', 'Пріоритетна підтримка'],
+      cta: 'Спробувати Pro',
+      popular: true,
+      color: '#ec4899',
+    },
+    {
+      name: 'Business',
+      subtitle: 'Для мережі салонів',
+      price: '1499',
+      features: ['Необмежено майстрів', 'Необмежено клієнтів', 'SMS нагадування', 'API інтеграції', 'Мультифіліальність', 'Персональний менеджер'],
+      cta: "Зв'язатись з нами",
+      popular: false,
+      color: '#6366f1',
+    },
+  ]
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, i) => (
-              <AnimatedSection key={i} delay={i * 100}>
-                <div className="h-full p-6 md:p-8 bg-[#0a0a0a] rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                    ))}
-                  </div>
-                  <p className="text-gray-300 mb-6 leading-relaxed">
-                    "{testimonial.content}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center text-sm font-semibold">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">{testimonial.name}</p>
-                      <p className="text-sm text-gray-500">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </div>
-              </AnimatedSection>
-            ))}
+  return (
+    <section id="pricing" className="relative py-28 sm:py-36" style={{ background: '#07070a' }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(236,72,153,0.2), transparent)' }} />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <AnimateIn>
+          <div className="text-center mb-16 sm:mb-20">
+            <p className="text-[13px] font-medium tracking-[0.2em] uppercase mb-4" style={{ color: '#34d399' }}>Ціни</p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-white mb-5" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Прості та прозорі
+            </h2>
+            <p className="text-lg text-white/35">Оберіть план під розмір вашого салону</p>
           </div>
-        </div>
-      </section>
+        </AnimateIn>
 
-      {/* FAQ Section */}
-      <section className="py-20 md:py-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <AnimatedSection>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 tracking-tight">
-                Часті питання
-              </h2>
-              <p className="text-lg text-gray-400">
-                Не знайшли відповідь? Напишіть нам — відповімо за 5 хвилин
-              </p>
-            </div>
-          </AnimatedSection>
-
-          <div className="space-y-4">
-            {faqItems.map((item, i) => (
-              <AnimatedSection key={i} delay={i * 50}>
-                <div className="border border-white/10 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex items-center justify-between p-5 text-left hover:bg-white/5 transition-colors"
-                  >
-                    <span className="font-medium text-white pr-4">{item.question}</span>
-                    <ChevronDown 
-                      className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${
-                        openFaq === i ? "rotate-180" : ""
-                      }`} 
-                    />
-                  </button>
-                  {openFaq === i && (
-                    <div className="px-5 pb-5">
-                      <p className="text-gray-400 leading-relaxed">{item.answer}</p>
-                    </div>
-                  )}
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section className="py-20 md:py-32 px-4 sm:px-6 lg:px-8">
-        <AnimatedSection>
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="relative">
-              {/* Background glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 via-fuchsia-500/20 to-violet-500/20 blur-[100px] -z-10" />
-              
-              <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
-                Готові почати?
-              </h2>
-              <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-                Приєднуйтесь до сотень салонів, які вже автоматизували свій бізнес
-              </p>
-              <Link 
-                href="/register"
-                className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold rounded-xl hover:from-violet-500 hover:to-fuchsia-500 transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 group"
+        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          {plans.map((plan, i) => (
+            <AnimateIn key={i} delay={i * 0.1}>
+              <div className={`relative rounded-2xl p-7 sm:p-8 border transition-all duration-500 h-full flex flex-col ${plan.popular ? 'border-white/[0.12]' : 'border-white/[0.06] hover:border-white/[0.1]'}`}
+                style={{ background: plan.popular ? 'linear-gradient(145deg, rgba(236,72,153,0.06) 0%, rgba(168,85,247,0.03) 100%)' : 'rgba(255,255,255,0.02)' }}
               >
-                Створити акаунт безкоштовно
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <p className="mt-4 text-sm text-gray-500">
-                Без карти • Налаштування за 10 хвилин • Скасувати можна будь-коли
-              </p>
-            </div>
-          </div>
-        </AnimatedSection>
-      </section>
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold tracking-wide text-white" style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' }}>
+                    НАЙПОПУЛЯРНІШИЙ
+                  </div>
+                )}
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12">
-            {/* Logo & Description */}
-            <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
+                <div className="mb-6">
+                  <p className="text-[13px] font-medium mb-1" style={{ color: plan.color }}>{plan.subtitle}</p>
+                  <h3 className="text-xl font-bold text-white mb-4">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-bold text-white tracking-tight">{plan.price}₴</span>
+                    <span className="text-white/30 text-sm">/міс</span>
+                  </div>
                 </div>
-                <span className="text-xl font-bold text-white">Beauty Pro</span>
-              </Link>
-              <p className="text-gray-500 max-w-sm mb-6">
-                CRM система для салонів краси. Автоматизуйте рутину та зосередьтесь на клієнтах.
-              </p>
-              <div className="flex items-center gap-4">
-                <a href="#" className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-                <a href="#" className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                </a>
-                <a href="#" className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                </a>
+
+                <div className="space-y-3 mb-8 flex-1">
+                  {plan.features.map((feature, fi) => (
+                    <div key={fi} className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${plan.color}15` }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={plan.color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                      </div>
+                      <span className="text-[14px] text-white/45">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Link
+                  href="/register"
+                  className={`block text-center py-3.5 rounded-xl text-[15px] font-semibold transition-all duration-300 ${
+                    plan.popular
+                      ? 'text-white hover:shadow-lg hover:shadow-purple-500/20 hover:scale-[1.02]'
+                      : 'text-white/70 border border-white/[0.08] hover:border-white/[0.16] hover:text-white hover:bg-white/[0.03]'
+                  }`}
+                  style={plan.popular ? { background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' } : {}}
+                >
+                  {plan.cta}
+                </Link>
               </div>
-            </div>
-            
-            {/* Links */}
-            <div>
-              <h4 className="font-semibold text-white mb-4">Продукт</h4>
-              <ul className="space-y-3">
-                <li><a href="#features" className="text-gray-500 hover:text-white transition-colors">Можливості</a></li>
-                <li><a href="#pricing" className="text-gray-500 hover:text-white transition-colors">Ціни</a></li>
-                <li><a href="#testimonials" className="text-gray-500 hover:text-white transition-colors">Відгуки</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-white mb-4">Контакти</h4>
-              <ul className="space-y-3">
-                <li className="text-gray-500">support@beautypro.ua</li>
-                <li className="text-gray-500">+380 (44) 123-45-67</li>
-                <li className="text-gray-500">Київ, Україна</li>
-              </ul>
+            </AnimateIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Testimonials() {
+  const testimonials = [
+    {
+      text: 'Нарешті все в одному місці! Раніше записували в блокнот, потім Excel... Тепер все автоматизовано. Кількість пропущених записів зменшилась на 70%.',
+      name: 'Олена Коваленко',
+      role: 'Власниця Beauty Lab',
+      initials: 'ОК',
+      color: '#a855f7',
+    },
+    {
+      text: 'Аналітика — це щось! Тепер бачу хто з майстрів приносить найбільше, які послуги популярні. За 3 місяці збільшили виручку на 40%.',
+      name: 'Марина Степаненко',
+      role: 'Nail Studio Kyiv',
+      initials: 'МС',
+      color: '#ec4899',
+    },
+    {
+      text: 'Перейшли з іншої CRM — небо і земля. Інтерфейс інтуїтивний, команда освоїла за день. Telegram-бот для записів — це must have.',
+      name: 'Андрій Мельник',
+      role: 'Barbershop BLADE',
+      initials: 'АМ',
+      color: '#6366f1',
+    },
+  ]
+
+  return (
+    <section id="testimonials" className="relative py-28 sm:py-36" style={{ background: '#07070a' }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)' }} />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <AnimateIn>
+          <div className="text-center mb-16 sm:mb-20">
+            <p className="text-[13px] font-medium tracking-[0.2em] uppercase mb-4" style={{ color: '#f59e0b' }}>Відгуки</p>
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-white mb-5" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Нас обирають професіонали
+            </h2>
+            <p className="text-lg text-white/35">Понад 500+ салонів вже використовують Beauty Pro CRM</p>
+          </div>
+        </AnimateIn>
+
+        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          {testimonials.map((t, i) => (
+            <AnimateIn key={i} delay={i * 0.1}>
+              <div className="relative p-7 rounded-2xl border border-white/[0.06] hover:border-white/[0.1] transition-all duration-500 h-full flex flex-col" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                {/* Quote icon */}
+                <svg className="w-8 h-8 mb-4 opacity-20" style={{ color: t.color }} viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
+
+                <p className="text-[15px] text-white/50 leading-relaxed flex-1 mb-6">{t.text}</p>
+
+                <div className="flex items-center gap-3 pt-5 border-t border-white/[0.06]">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-bold text-white" style={{ background: t.color, opacity: 0.7 }}>
+                    {t.initials}
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-medium text-white/80">{t.name}</p>
+                    <p className="text-[12px] text-white/30">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            </AnimateIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
+
+  const questions = [
+    { q: 'Чи потрібна банківська карта для реєстрації?', a: 'Ні, для безкоштовного плану карта не потрібна. Ви можете користуватися Free планом скільки завгодно і перейти на Pro коли будете готові.' },
+    { q: 'Чи можна імпортувати клієнтів з Excel?', a: 'Так! Ви можете імпортувати базу клієнтів з Excel або CSV файлу. Система автоматично розпізнає колонки та запропонує маппінг полів.' },
+    { q: 'Чи працює система на телефоні?', a: 'Так, Beauty Pro CRM повністю адаптована для мобільних пристроїв. Ви можете керувати салоном з будь-якого телефону чи планшету через браузер.' },
+    { q: 'Як підключити Telegram-нагадування?', a: 'Підключення займає 2 хвилини: створіть бота через BotFather, введіть токен в налаштуваннях, готово. Клієнти будуть автоматично отримувати нагадування.' },
+  ]
+
+  return (
+    <section className="relative py-28 sm:py-36" style={{ background: '#07070a' }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(244,158,11,0.2), transparent)' }} />
+
+      <div className="max-w-2xl mx-auto px-5 sm:px-8">
+        <AnimateIn>
+          <div className="text-center mb-14">
+            <p className="text-[13px] font-medium tracking-[0.2em] uppercase mb-4" style={{ color: '#6366f1' }}>FAQ</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.02em] text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Часті питання
+            </h2>
+          </div>
+        </AnimateIn>
+
+        <div className="space-y-2">
+          {questions.map((item, i) => (
+            <AnimateIn key={i} delay={i * 0.08}>
+              <button
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className="w-full text-left p-5 rounded-xl border border-white/[0.06] hover:border-white/[0.1] transition-all duration-300"
+                style={{ background: openIndex === i ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)' }}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[15px] font-medium text-white/70">{item.q}</span>
+                  <svg className={`w-4 h-4 text-white/30 flex-shrink-0 transition-transform duration-300 ${openIndex === i ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                </div>
+                <div className="overflow-hidden transition-all duration-500" style={{ maxHeight: openIndex === i ? '200px' : '0', opacity: openIndex === i ? 1 : 0, marginTop: openIndex === i ? '12px' : '0' }}>
+                  <p className="text-[14px] text-white/35 leading-relaxed">{item.a}</p>
+                </div>
+              </button>
+            </AnimateIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function CTA() {
+  return (
+    <section className="relative py-28 sm:py-36 overflow-hidden" style={{ background: '#07070a' }}>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200px] h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.2), transparent)' }} />
+
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] opacity-[0.08]" style={{ background: 'radial-gradient(ellipse, #a855f7 0%, transparent 70%)' }} />
+
+      <div className="relative z-10 max-w-2xl mx-auto px-5 sm:px-8 text-center">
+        <AnimateIn>
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-white mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Готові{' '}
+            <span className="italic" style={{ background: 'linear-gradient(135deg, #c084fc 0%, #f472b6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              почати?
+            </span>
+          </h2>
+        </AnimateIn>
+
+        <AnimateIn delay={0.1}>
+          <p className="text-lg text-white/35 mb-10">
+            Приєднуйтесь до сотень салонів, які вже автоматизували свій бізнес
+          </p>
+        </AnimateIn>
+
+        <AnimateIn delay={0.2}>
+          <Link
+            href="/register"
+            className="group relative inline-flex items-center gap-2 px-8 py-4 text-[16px] font-semibold text-white rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-purple-500/25 hover:scale-[1.02]"
+            style={{ background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)' }}
+          >
+            <span className="relative z-10">Створити акаунт безкоштовно</span>
+            <svg className="relative z-10 w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(135deg, #9333ea 0%, #db2777 100%)' }} />
+          </Link>
+        </AnimateIn>
+
+        <AnimateIn delay={0.3}>
+          <p className="text-[13px] text-white/20 mt-6">
+            Без карти • Налаштування за 10 хвилин • Скасувати можна будь-коли
+          </p>
+        </AnimateIn>
+      </div>
+    </section>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="relative border-t border-white/[0.06]" style={{ background: '#07070a' }}>
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14">
+        <div className="grid sm:grid-cols-3 gap-10 sm:gap-8">
+          <div>
+            <Link href="/" className="flex items-center gap-2.5 mb-4">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #c084fc 0%, #e879a8 100%)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </div>
+              <span className="text-base font-semibold text-white/80">Beauty Pro</span>
+            </Link>
+            <p className="text-[14px] text-white/25 leading-relaxed max-w-xs">
+              CRM система для салонів краси. Автоматизуйте рутину та зосередьтесь на клієнтах.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-[12px] font-semibold text-white/40 tracking-[0.15em] uppercase mb-4">Продукт</p>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Можливості', href: '#features' },
+                { label: 'Ціни', href: '#pricing' },
+                { label: 'Відгуки', href: '#testimonials' },
+              ].map((link) => (
+                <a key={link.href} href={link.href} className="block text-[14px] text-white/25 hover:text-white/50 transition-colors">{link.label}</a>
+              ))}
             </div>
           </div>
-          
-          {/* Bottom */}
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-500">
-              © 2026 Beauty Pro CRM. Всі права захищені.
-            </p>
-            <div className="flex items-center gap-6 text-sm">
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Політика конфіденційності</a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Умови використання</a>
+
+          <div>
+            <p className="text-[12px] font-semibold text-white/40 tracking-[0.15em] uppercase mb-4">Контакти</p>
+            <div className="space-y-2.5">
+              <p className="text-[14px] text-white/25">support@beautypro.ua</p>
+              <p className="text-[14px] text-white/25">+380 (44) 123-45-67</p>
+              <p className="text-[14px] text-white/25">Київ, Україна</p>
             </div>
           </div>
         </div>
-      </footer>
-    </div>
-  );
+
+        <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[13px] text-white/15">© 2026 Beauty Pro CRM. Всі права захищені.</p>
+          <div className="flex gap-6">
+            <a href="#" className="text-[13px] text-white/15 hover:text-white/30 transition-colors">Конфіденційність</a>
+            <a href="#" className="text-[13px] text-white/15 hover:text-white/30 transition-colors">Умови</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+// ============ MAIN PAGE ============
+export default function LandingPage() {
+  return (
+    <>
+      {/* Fonts */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+      <div className="min-h-screen" style={{ background: '#07070a', fontFamily: "'DM Sans', sans-serif", color: 'white' }}>
+        <Header />
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <Pricing />
+        <Testimonials />
+        <FAQ />
+        <CTA />
+        <Footer />
+      </div>
+    </>
+  )
 }
