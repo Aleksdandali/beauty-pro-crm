@@ -59,6 +59,8 @@ export default function CalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [saving, setSaving] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("all");
+  const [selectedDayForModal, setSelectedDayForModal] = useState<Date | null>(null);
 
   // Дані для форми
   const [clients, setClients] = useState<Client[]>([]);
@@ -250,7 +252,7 @@ export default function CalendarPage() {
 
   // Отримати записи для години
   const getAppointmentsForHour = (date: Date, hour: number) => {
-    return appointments.filter(apt => {
+    return filteredAppointments.filter(apt => {
       const aptDate = new Date(apt.start_time);
       return isSameDay(aptDate, date) && aptDate.getHours() === hour;
     });
@@ -301,6 +303,35 @@ export default function CalendarPage() {
   const weekDays = getWeekDays();
   const today = new Date();
 
+  // Фільтрація записів по майстру
+  const filteredAppointments = appointments.filter(apt => 
+    selectedStaffId === "all" || apt.staff?.id === selectedStaffId
+  );
+
+  // Функції для модалки дня
+  const WORK_HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8:00 - 20:00
+
+  const getSlotStatus = (date: Date, hour: number, minute: number = 0) => {
+    const slotStart = new Date(date);
+    slotStart.setHours(hour, minute, 0, 0);
+    
+    const slotEnd = new Date(slotStart);
+    slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+    
+    // Фільтруємо по вибраному майстру
+    const relevantAppointments = selectedStaffId === "all" 
+      ? appointments 
+      : appointments.filter(apt => apt.staff?.id === selectedStaffId);
+    
+    const appointment = relevantAppointments.find(apt => {
+      const aptStart = new Date(apt.start_time);
+      const aptEnd = new Date(apt.end_time);
+      return slotStart < aptEnd && slotEnd > aptStart;
+    });
+    
+    return appointment || null;
+  };
+
   return (
     <div className="min-h-full pb-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -345,6 +376,21 @@ export default function CalendarPage() {
               >
                 <ChevronRight size={20} className="text-gray-600 dark:text-gray-400" />
               </button>
+            </div>
+
+            {/* Staff filter */}
+            <div className="flex items-center gap-2">
+              <User size={18} className="text-gray-400" />
+              <select
+                value={selectedStaffId}
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+                className="px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+              >
+                <option value="all">Всі майстри</option>
+                {staffList.map(s => (
+                  <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Date display */}
@@ -512,7 +558,7 @@ export default function CalendarPage() {
               {/* Дні місяця */}
               <div className="grid grid-cols-7">
                 {getMonthDays().map((day, i) => {
-                  const dayAppointments = day ? appointments.filter(apt => isSameDay(new Date(apt.start_time), day)) : [];
+                  const dayAppointments = day ? filteredAppointments.filter(apt => isSameDay(new Date(apt.start_time), day)) : [];
                   const isToday = day && isSameDay(day, today);
                   
                   return (
@@ -521,7 +567,7 @@ export default function CalendarPage() {
                       className={`min-h-[100px] p-2 border-b border-r border-gray-100 dark:border-white/5 ${
                         day ? "hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer" : "bg-gray-50 dark:bg-white/5"
                       } ${isToday ? "bg-violet-50 dark:bg-violet-500/10" : ""}`}
-                      onClick={() => day && (setCurrentDate(day), setViewMode("day"))}
+                      onClick={() => day && setSelectedDayForModal(day)}
                     >
                       {day && (
                         <>
@@ -795,6 +841,115 @@ export default function CalendarPage() {
                     Видалити
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Day Slots Modal */}
+        {selectedDayForModal && (
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-[#111111] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-hidden border border-gray-200 dark:border-white/10">
+              {/* Header */}
+              <div className="p-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {selectedDayForModal.toLocaleDateString("uk-UA", { weekday: "long", day: "numeric", month: "long" })}
+                  </h2>
+                  {selectedStaffId !== "all" && (
+                    <p className="text-sm text-violet-600 dark:text-violet-400">
+                      {staffList.find(s => s.id === selectedStaffId)?.first_name} {staffList.find(s => s.id === selectedStaffId)?.last_name}
+                    </p>
+                  )}
+                </div>
+                <button 
+                  onClick={() => setSelectedDayForModal(null)} 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+              
+              {/* Time Slots */}
+              <div className="overflow-y-auto max-h-[60vh] p-4">
+                <div className="space-y-1">
+                  {WORK_HOURS.flatMap(hour => [0, 30].map(minute => {
+                    const appointment = getSlotStatus(selectedDayForModal, hour, minute);
+                    const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+                    
+                    if (appointment) {
+                      // Зайнятий слот
+                      return (
+                        <div
+                          key={`${hour}:${minute}`}
+                          className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all"
+                          style={{ backgroundColor: appointment.service?.color + "15", borderLeft: `3px solid ${appointment.service?.color}` }}
+                          onClick={() => { setSelectedDayForModal(null); setSelectedAppointment(appointment); }}
+                        >
+                          <div className="text-sm font-medium text-gray-500 dark:text-gray-400 w-12">
+                            {timeStr}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 dark:text-white truncate">
+                              {appointment.client?.full_name || "Клієнт"}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                              {appointment.service?.name} • {appointment.staff?.first_name}
+                            </p>
+                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            ₴{appointment.price}
+                          </div>
+                        </div>
+                      );
+                    } else {
+                      // Вільний слот
+                      return (
+                        <div
+                          key={`${hour}:${minute}`}
+                          className="flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-500/10 cursor-pointer transition-all group"
+                          onClick={() => {
+                            setSelectedDayForModal(null);
+                            setForm({
+                              client_id: "",
+                              staff_id: selectedStaffId === "all" ? "" : selectedStaffId,
+                              service_id: "",
+                              date: selectedDayForModal.toISOString().split("T")[0],
+                              time: timeStr,
+                              notes: "",
+                            });
+                            setSelectedAppointment(null);
+                            setShowModal(true);
+                          }}
+                        >
+                          <div className="text-sm font-medium text-gray-400 dark:text-gray-500 w-12">
+                            {timeStr}
+                          </div>
+                          <div className="flex-1 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                            <span className="text-sm text-gray-400 dark:text-gray-500 group-hover:text-green-600 dark:group-hover:text-green-400">
+                              Вільно
+                            </span>
+                          </div>
+                          <Plus size={18} className="text-gray-300 group-hover:text-green-500 transition-colors" />
+                        </div>
+                      );
+                    }
+                  }))}
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
+                <button
+                  onClick={() => {
+                    setSelectedDayForModal(null);
+                    openNewModal(selectedDayForModal);
+                  }}
+                  className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-medium transition-colors"
+                >
+                  + Новий запис на цей день
+                </button>
               </div>
             </div>
           </div>
