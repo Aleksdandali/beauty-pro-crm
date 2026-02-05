@@ -1,7 +1,243 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
+
+type Lang = 'ua' | 'en'
+type Theme = 'dark' | 'light'
+
+const translations: Record<Lang, Record<string, string>> = {
+  ua: {
+    'nav.product': 'Продукт',
+    'nav.features': 'Можливості',
+    'nav.pricing': 'Тарифи',
+    'nav.reviews': 'Відгуки',
+    'nav.faq': 'FAQ',
+    'nav.cta': 'Спробувати',
+    'hero.pill': 'CRM створена для beauty-індустрії',
+    'hero.title1': 'Ваш салон втрачає ',
+    'hero.title2': ' щомісяця без CRM',
+    'hero.desc': 'No-show, забуті клієнти, хаос у записах — це не дрібниці, це реальні гроші. ShinePRO закриває ці діри за 5 хвилин.',
+    'hero.btn1': 'Запустити безкоштовно',
+    'hero.btn2': 'Розрахувати втрати',
+    'hero.proof': 'Створено для ',
+    'hero.proof2': 'українських салонів краси',
+    'calc.eyebrow': 'Калькулятор втрат',
+    'calc.title1': 'Скільки ви втрачаєте ',
+    'calc.title2': 'щомісяця',
+    'calc.desc': 'Рухайте слайдери — побачите реальну картину втрат вашого салону без CRM',
+    'calc.masters': 'Кількість майстрів',
+    'calc.bookings': 'Записів на день (на майстра)',
+    'calc.avgcheck': 'Середній чек, ₴',
+    'calc.results': 'Ваші щомісячні втрати',
+    'calc.noshow': 'No-show (12% записів)',
+    'calc.churn': 'Втрата клієнтів (34%)',
+    'calc.materials': 'Перевитрата матеріалів',
+    'calc.time': 'Час на рутину (3 год/день)',
+    'calc.total': 'Загальні втрати на місяць',
+    'calc.total.sub': 'Це можна повернути з ShinePRO',
+    'calc.cta': 'Перестати втрачати гроші',
+    'feat.eyebrow': 'Можливості',
+    'feat.title': 'Не просто CRM, а операційна система вашого салону',
+    'feat.desc': 'Кожна функція вирішує конкретну бізнес-проблему і приносить вимірюваний результат.',
+    'feat.1.title': 'Розумний календар з AI-оптимізацією',
+    'feat.1.desc': 'Система аналізує середню тривалість послуг і пропонує оптимальне розміщення записів. Мінус 40 хвилин простоїв на день.',
+    'feat.2.title': 'Автоматизації',
+    'feat.2.desc': '7 готових сценаріїв які працюють без вашої участі. No-show знижується з 12% до 2%.',
+    'feat.3.title': 'RFM-сегментація',
+    'feat.3.desc': 'Автоматичний поділ бази по лояльності. Кожен сегмент отримує свою стратегію повернення.',
+    'feat.4.title': 'Склад',
+    'feat.4.desc': 'Техкарти автоматично списують матеріали. Повідомлення коли запас менше мінімуму.',
+    'feat.5.title': 'Фінанси',
+    'feat.5.desc': 'Зарплати, комісії, бонуси — автоматичний розрахунок. Monobank та ПриватБанк інтеграція.',
+    'feat.6.title': 'Telegram-бот',
+    'feat.6.desc': 'Клієнти записуються через бот, отримують нагадування і залишають відгуки. 24/7 без адміністратора.',
+    'pricing.eyebrow': 'Тарифи',
+    'pricing.title1': 'Прозорі ціни без ',
+    'pricing.title2': 'прихованих платежів',
+    'pricing.desc': 'Оберіть план під ваш салон. Завжди можна змінити.',
+    'pricing.monthly': 'Щомісяця',
+    'pricing.yearly': 'Щорічно',
+    'pricing.start.name': 'Start',
+    'pricing.start.desc': 'Для solo-майстрів та невеликих студій',
+    'pricing.start.f1': 'До 2 майстрів',
+    'pricing.start.f2': 'Онлайн-запис + календар',
+    'pricing.start.f3': 'Telegram-нагадування',
+    'pricing.start.f4': 'База клієнтів до 500',
+    'pricing.start.btn': 'Почати безкоштовно',
+    'pricing.pro.name': 'Pro',
+    'pricing.pro.tag': 'Найпопулярніший',
+    'pricing.pro.desc': 'Для салонів з командою та амбіціями',
+    'pricing.pro.f1': 'До 8 майстрів',
+    'pricing.pro.f2': 'RFM-аналітика + автоматизації',
+    'pricing.pro.f3': 'Telegram-бот для запису',
+    'pricing.pro.f4': 'Склад + техкарти',
+    'pricing.pro.f5': 'Фінанси + зарплати',
+    'pricing.pro.btn': 'Почати безкоштовно',
+    'pricing.ent.name': 'Enterprise',
+    'pricing.ent.desc': 'Для мереж салонів та франшиз',
+    'pricing.ent.f1': 'Необмежено майстрів',
+    'pricing.ent.f2': 'Мультилокації',
+    'pricing.ent.f3': 'API + кастомні інтеграції',
+    'pricing.ent.f4': 'Виділений менеджер',
+    'pricing.ent.btn': "Зв'язатися з нами",
+    'reviews.eyebrow': 'Відгуки',
+    'reviews.title': 'Що кажуть власники салонів',
+    'reviews.desc': 'Реальні історії, конкретні цифри',
+    'rev.1': 'За перший місяць <strong>no-show впав з 14% до 2.3%</strong>. Це ₴23,000 які раніше просто зникали. Автонагадування в Telegram — найкраща інвестиція.',
+    'rev.1.name': 'Олена М.',
+    'rev.1.co': 'Nail-студія · Київ · 5 майстрів',
+    'rev.2': 'RFM-сегментація показала, що <strong>27% бази — «сплячі» клієнти</strong>. Запустили автоматичну реактивацію — повернули 68 клієнтів за місяць.',
+    'rev.2.name': 'Ірина К.',
+    'rev.2.co': 'Beauty Space · Одеса · 3 майстри',
+    'rev.3': 'Техкарти з автосписанням — <strong>щомісячна економія ₴12,000 на матеріалах</strong>. Раніше зливали на перевитрату. Тепер кожен грам під контролем.',
+    'rev.3.name': 'Анастасія Ш.',
+    'rev.3.co': 'Nail Bar · Харків · 7 майстрів',
+    'faq.title': 'Часті запитання',
+    'faq.desc': 'Не знайшли відповідь? Напишіть нам в Telegram — відповімо за 5 хвилин.',
+    'faq.1.q': 'Скільки часу займає налаштування?',
+    'faq.1.a': 'Реєстрація займає 5 хвилин. Базове налаштування з додаванням послуг і майстрів — 15 хвилин. Якщо у вас є база клієнтів в Excel або іншій CRM, ми безкоштовно допоможемо перенести її протягом 24 годин.',
+    'faq.2.q': 'Чи потрібно встановлювати щось на комп\'ютер?',
+    'faq.2.a': 'Ні. ShinePRO працює в браузері та як PWA-додаток на телефоні. Заходите з будь-якого пристрою — всі дані синхронізуються автоматично.',
+    'faq.3.q': 'Як працює Telegram-бот для клієнтів?',
+    'faq.3.a': 'Клієнт знаходить бот вашого салону в Telegram, бачить вільні слоти, обирає майстра та послугу, підтверджує запис. За 2 години до візиту отримує нагадування.',
+    'faq.4.q': 'Що якщо мені не підійде?',
+    'faq.4.a': '14 днів безкоштовного тріалу без прив\'язки картки. Якщо не підійде — просто не продовжуйте. Жодних зобов\'язань.',
+    'cta.title1': 'Перестаньте рахувати в Excel.',
+    'cta.title2': 'Почніть ',
+    'cta.title3': 'заробляти більше',
+    'cta.desc': 'Залиште заявку — ми допоможемо налаштувати все за вас. Безкоштовно.',
+    'cta.name': "Ваше ім'я",
+    'cta.phone': '+380 XX XXX XX XX',
+    'cta.salon': 'Назва салону',
+    'cta.submit': 'Отримати безкоштовний доступ',
+    'cta.note': '14 днів безкоштовно · Без картки · Налаштування за 5 хвилин',
+    'cta.f1': 'Без картки',
+    'cta.f2': "Без зобов'язань",
+    'cta.f3': 'Підтримка 24/7',
+    'footer.copy': '© 2026 ShinePRO. Всі права захищені.',
+    'footer.privacy': 'Конфіденційність',
+    'footer.terms': 'Умови',
+    'footer.support': 'Підтримка',
+    'toast': "Заявку надіслано! Зв'яжемося з вами за 5 хвилин.",
+    'per.month': ' / міс',
+  },
+  en: {
+    'nav.product': 'Product',
+    'nav.features': 'Features',
+    'nav.pricing': 'Pricing',
+    'nav.reviews': 'Reviews',
+    'nav.faq': 'FAQ',
+    'nav.cta': 'Try Free',
+    'hero.pill': 'CRM built for the beauty industry',
+    'hero.title1': 'Your salon loses ',
+    'hero.title2': ' monthly without a CRM',
+    'hero.desc': 'No-shows, forgotten clients, booking chaos — these aren\'t minor issues, they\'re real money. ShinePRO fixes these gaps in 5 minutes.',
+    'hero.btn1': 'Start for free',
+    'hero.btn2': 'Calculate losses',
+    'hero.proof': 'Built for ',
+    'hero.proof2': 'Ukrainian beauty salons',
+    'calc.eyebrow': 'Loss Calculator',
+    'calc.title1': 'How much do you lose ',
+    'calc.title2': 'every month',
+    'calc.desc': 'Move the sliders — see the real picture of your salon\'s losses without a CRM',
+    'calc.masters': 'Number of stylists',
+    'calc.bookings': 'Bookings per day (per stylist)',
+    'calc.avgcheck': 'Average check, ₴',
+    'calc.results': 'Your monthly losses',
+    'calc.noshow': 'No-shows (12% of bookings)',
+    'calc.churn': 'Client churn (34%)',
+    'calc.materials': 'Material overspending',
+    'calc.time': 'Time on routine (3 hrs/day)',
+    'calc.total': 'Total monthly losses',
+    'calc.total.sub': 'You can recover this with ShinePRO',
+    'calc.cta': 'Stop losing money',
+    'feat.eyebrow': 'Features',
+    'feat.title': 'Not just a CRM — your salon\'s operating system',
+    'feat.desc': 'Every feature solves a real business problem and delivers measurable results.',
+    'feat.1.title': 'Smart Calendar with AI Optimization',
+    'feat.1.desc': 'The system analyzes average service duration and suggests optimal booking placement. Minus 40 minutes of downtime per day.',
+    'feat.2.title': 'Automations',
+    'feat.2.desc': '7 ready-made scenarios that work without your involvement. No-show drops from 12% to 2%.',
+    'feat.3.title': 'RFM Segmentation',
+    'feat.3.desc': 'Automatic segmentation by loyalty. Each segment gets its own retention strategy.',
+    'feat.4.title': 'Inventory',
+    'feat.4.desc': 'Tech cards auto-deduct materials. Alerts when stock falls below minimum.',
+    'feat.5.title': 'Finance',
+    'feat.5.desc': 'Salaries, commissions, bonuses — automatic calculation. Monobank & PrivatBank integration.',
+    'feat.6.title': 'Telegram Bot',
+    'feat.6.desc': 'Clients book via bot, get reminders and leave reviews. 24/7 without a receptionist.',
+    'pricing.eyebrow': 'Pricing',
+    'pricing.title1': 'Transparent pricing with ',
+    'pricing.title2': 'no hidden fees',
+    'pricing.desc': 'Choose a plan for your salon. Switch anytime.',
+    'pricing.monthly': 'Monthly',
+    'pricing.yearly': 'Yearly',
+    'pricing.start.name': 'Start',
+    'pricing.start.desc': 'For solo stylists and small studios',
+    'pricing.start.f1': 'Up to 2 stylists',
+    'pricing.start.f2': 'Online booking + calendar',
+    'pricing.start.f3': 'Telegram reminders',
+    'pricing.start.f4': 'Client database up to 500',
+    'pricing.start.btn': 'Start for free',
+    'pricing.pro.name': 'Pro',
+    'pricing.pro.tag': 'Most Popular',
+    'pricing.pro.desc': 'For salons with a team and ambitions',
+    'pricing.pro.f1': 'Up to 8 stylists',
+    'pricing.pro.f2': 'RFM analytics + automations',
+    'pricing.pro.f3': 'Telegram bot for booking',
+    'pricing.pro.f4': 'Inventory + tech cards',
+    'pricing.pro.f5': 'Finance + payroll',
+    'pricing.pro.btn': 'Start for free',
+    'pricing.ent.name': 'Enterprise',
+    'pricing.ent.desc': 'For salon chains and franchises',
+    'pricing.ent.f1': 'Unlimited stylists',
+    'pricing.ent.f2': 'Multi-location',
+    'pricing.ent.f3': 'API + custom integrations',
+    'pricing.ent.f4': 'Dedicated manager',
+    'pricing.ent.btn': 'Contact us',
+    'reviews.eyebrow': 'Reviews',
+    'reviews.title': 'What salon owners say',
+    'reviews.desc': 'Real stories, real numbers',
+    'rev.1': 'In the first month, <strong>no-shows dropped from 14% to 2.3%</strong>. That\'s ₴23,000 that used to just vanish. Telegram auto-reminders — best investment ever.',
+    'rev.1.name': 'Olena M.',
+    'rev.1.co': 'Nail studio · Kyiv · 5 stylists',
+    'rev.2': 'RFM segmentation revealed that <strong>27% of our database were "sleeping" clients</strong>. We launched auto-reactivation — brought back 68 clients in a month.',
+    'rev.2.name': 'Iryna K.',
+    'rev.2.co': 'Beauty Space · Odesa · 3 stylists',
+    'rev.3': 'Tech cards with auto-deduction — <strong>₴12,000 monthly savings on materials</strong>. We used to overspend. Now every gram is tracked.',
+    'rev.3.name': 'Anastasia Sh.',
+    'rev.3.co': 'Nail Bar · Kharkiv · 7 stylists',
+    'faq.title': 'Frequently Asked Questions',
+    'faq.desc': 'Can\'t find an answer? Message us on Telegram — we\'ll reply in 5 minutes.',
+    'faq.1.q': 'How long does setup take?',
+    'faq.1.a': 'Registration takes 5 minutes. Basic setup with services and stylists — 15 minutes. If you have a client database in Excel or another CRM, we\'ll migrate it for free within 24 hours.',
+    'faq.2.q': 'Do I need to install anything?',
+    'faq.2.a': 'No. ShinePRO works in the browser and as a PWA app on your phone. Access from any device — all data syncs automatically.',
+    'faq.3.q': 'How does the Telegram bot work?',
+    'faq.3.a': 'Clients find your salon\'s bot on Telegram, see available slots, choose a stylist and service, and confirm the booking. 2 hours before the visit, they get a reminder.',
+    'faq.4.q': 'What if it\'s not for me?',
+    'faq.4.a': '14-day free trial with no credit card required. If it doesn\'t work out — just don\'t continue. No obligations.',
+    'cta.title1': 'Stop counting in Excel.',
+    'cta.title2': 'Start ',
+    'cta.title3': 'earning more',
+    'cta.desc': 'Leave a request — we\'ll help you set everything up. For free.',
+    'cta.name': 'Your name',
+    'cta.phone': '+380 XX XXX XX XX',
+    'cta.salon': 'Salon name',
+    'cta.submit': 'Get free access',
+    'cta.note': '14 days free · No card · Setup in 5 minutes',
+    'cta.f1': 'No card',
+    'cta.f2': 'No obligations',
+    'cta.f3': '24/7 support',
+    'footer.copy': '© 2026 ShinePRO. All rights reserved.',
+    'footer.privacy': 'Privacy',
+    'footer.terms': 'Terms',
+    'footer.support': 'Support',
+    'toast': 'Request sent! We\'ll contact you within 5 minutes.',
+    'per.month': ' / mo',
+  },
+}
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -11,6 +247,15 @@ export default function LandingPage() {
   const [avgCheck, setAvgCheck] = useState(850)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
+  const [lang, setLang] = useState<Lang>('ua')
+  const [theme, setTheme] = useState<Theme>('dark')
+
+  const t = useCallback((key: string) => translations[lang][key] || key, [lang])
+
+  // Theme handler
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
 
   // Scroll handler for nav
   useEffect(() => {
@@ -62,6 +307,36 @@ export default function LandingPage() {
           --ease:cubic-bezier(0.16,1,0.3,1);
           --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;
         }
+        [data-theme="light"]{
+          --bg-0:#FAFAFA;--bg-1:#F3F3F5;--bg-2:#EEEDF2;--bg-3:#E4E3EA;
+          --bg-card:#FFFFFF;--bg-card-h:#F8F7FB;
+          --b1:rgba(0,0,0,0.04);--b2:rgba(0,0,0,0.08);
+          --b3:rgba(0,0,0,0.14);--b4:rgba(0,0,0,0.22);
+          --t1:#1A1A2E;--t2:#5C5A70;--t3:#8D8BA0;--t4:#AEADC0;
+          --violet-s:rgba(139,92,246,0.08);--violet-g:rgba(139,92,246,0.18);
+          --rose-s:rgba(232,67,122,0.08);
+          --amber-s:rgba(229,164,48,0.08);
+          --emerald-s:rgba(34,197,131,0.08);
+          --sky-s:rgba(56,173,245,0.08);
+          --g-subtle:linear-gradient(135deg,rgba(139,92,246,0.06),rgba(232,67,122,0.03),rgba(229,164,48,0.02));
+        }
+        [data-theme="light"] body::after{display:none}
+        [data-theme="light"] .amb{opacity:0.4}
+        [data-theme="light"] .nav.scrolled{background:rgba(250,250,250,0.85)}
+        [data-theme="light"] .logo-mark::after{background:var(--bg-0)}
+        [data-theme="light"] .btn-s{color:#fff;background:var(--violet)}
+        [data-theme="light"] .btn-p{color:#fff;background:var(--violet)}
+        [data-theme="light"] .btn-p:hover{box-shadow:0 8px 32px rgba(139,92,246,0.25)}
+        [data-theme="light"] .btn-g{background:rgba(0,0,0,0.03);border-color:var(--b2)}
+        [data-theme="light"] .price-btn-primary{background:var(--violet);color:#fff}
+        [data-theme="light"] .price-btn-primary:hover{box-shadow:0 4px 20px rgba(139,92,246,0.25)}
+        [data-theme="light"] .d-stat-v,.d-stat-l,.d-name,.d-card-t,.d-title{color:var(--t1)}
+        [data-theme="light"] .show-border-in{background:var(--bg-1)}
+        [data-theme="light"] .show-frame{background:var(--bg-1);box-shadow:0 24px 80px rgba(0,0,0,0.08),0 0 0 1px var(--b1)}
+        [data-theme="light"] .lead-submit{background:var(--violet);color:#fff}
+        [data-theme="light"] .lead-submit:hover{box-shadow:0 8px 32px rgba(139,92,246,0.25)}
+        [data-theme="light"] .av{border-color:var(--bg-0)}
+
         html{scroll-behavior:smooth}
         body{font-family:var(--font);background:var(--bg-0);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
         ::selection{background:var(--violet-s);color:var(--t1)}
@@ -330,6 +605,15 @@ export default function LandingPage() {
         .foot-links a{font-size:13px;color:var(--t3);text-decoration:none;transition:color 0.2s}
         .foot-links a:hover{color:var(--t2)}
 
+        .nav-toggles{display:flex;align-items:center;gap:6px;margin-right:8px}
+        .t-btn{width:36px;height:36px;border-radius:var(--r-sm);border:1px solid var(--b2);background:rgba(255,255,255,0.03);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-family:var(--font);font-size:12px;font-weight:700;padding:0}
+        .t-btn:hover{border-color:var(--b3);color:var(--t1);background:rgba(255,255,255,0.06)}
+        .t-btn.active{border-color:var(--violet);color:var(--violet);background:var(--violet-s)}
+        .t-btn svg{width:16px;height:16px}
+        .lang-toggle{display:flex;border-radius:var(--r-sm);border:1px solid var(--b2);overflow:hidden}
+        .lang-btn{padding:6px 10px;font-size:11px;font-weight:700;font-family:var(--font);border:none;background:transparent;color:var(--t3);cursor:pointer;transition:all 0.2s}
+        .lang-btn.active{background:var(--violet);color:#fff}
+
         @media(max-width:1024px){
           .bento{grid-template-columns:repeat(6,1fr)}
           .bc-1{grid-column:span 6;grid-row:span 1}.bc-2,.bc-3{grid-column:span 3}.bc-4,.bc-5,.bc-6{grid-column:span 2}
@@ -367,15 +651,28 @@ export default function LandingPage() {
               <span className="logo-name">ShinePRO</span>
             </Link>
             <ul className="nav-menu">
-              <li><a href="#product">Продукт</a></li>
-              <li><a href="#features">Можливості</a></li>
-              <li><a href="#pricing">Тарифи</a></li>
-              <li><a href="#reviews">Відгуки</a></li>
-              <li><a href="#faq">FAQ</a></li>
+              <li><a href="#product">{t('nav.product')}</a></li>
+              <li><a href="#features">{t('nav.features')}</a></li>
+              <li><a href="#pricing">{t('nav.pricing')}</a></li>
+              <li><a href="#reviews">{t('nav.reviews')}</a></li>
+              <li><a href="#faq">{t('nav.faq')}</a></li>
             </ul>
           </div>
           <div className="nav-r">
-            <a href="#cta" className="btn-s">Спробувати</a>
+            <div className="nav-toggles">
+              <div className="lang-toggle">
+                <button className={`lang-btn ${lang === 'ua' ? 'active' : ''}`} onClick={() => setLang('ua')}>UA</button>
+                <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
+              </div>
+              <button className="t-btn" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
+                {theme === 'dark' ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                )}
+              </button>
+            </div>
+            <a href="#cta" className="btn-s">{t('nav.cta')}</a>
           </div>
         </div>
       </nav>
@@ -385,17 +682,17 @@ export default function LandingPage() {
         <div className="hero-grid"></div>
         <div className="hero-radial"></div>
         <div className="hero-c">
-          <div className="hero-pill"><span className="pill-dot"></span>CRM створена для beauty-індустрії</div>
-          <h1>Ваш салон втрачає <span className="gt">₴47 000</span> щомісяця без CRM</h1>
-          <p className="hero-desc">No-show, забуті клієнти, хаос у записах — це не дрібниці, це реальні гроші. ShinePRO закриває ці діри за 5 хвилин.</p>
+          <div className="hero-pill"><span className="pill-dot"></span>{t('hero.pill')}</div>
+          <h1>{t('hero.title1')}<span className="gt">₴47 000</span>{t('hero.title2')}</h1>
+          <p className="hero-desc">{t('hero.desc')}</p>
           <div className="hero-btns">
             <a href="#cta" className="btn-p">
-              Запустити безкоштовно
+              {t('hero.btn1')}
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
             <a href="#calculator" className="btn-g">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-              Розрахувати втрати
+              {t('hero.btn2')}
             </a>
           </div>
           <div className="hero-proof">
@@ -406,7 +703,7 @@ export default function LandingPage() {
               <div className="av" style={{background:'var(--emerald)'}}>НП</div>
               <div className="av" style={{background:'var(--sky)'}}>ТВ</div>
             </div>
-            <span>Створено для <strong>українських салонів краси</strong></span>
+            <span>{t('hero.proof')}<strong>{t('hero.proof2')}</strong></span>
           </div>
         </div>
       </section>
@@ -501,27 +798,27 @@ export default function LandingPage() {
       <section className="calc" id="calculator">
         <div className="calc-wrap">
           <div className="calc-hd">
-            <span className="eyebrow">Калькулятор втрат</span>
-            <h2>Скільки ви втрачаєте <span className="gt">щомісяця</span>?</h2>
-            <p>Рухайте слайдери — побачите реальну картину втрат вашого салону без CRM</p>
+            <span className="eyebrow">{t('calc.eyebrow')}</span>
+            <h2>{t('calc.title1')}<span className="gt">{t('calc.title2')}</span>?</h2>
+            <p>{t('calc.desc')}</p>
           </div>
           <div className="calc-box">
             <div className="calc-grid">
               <div className="calc-inputs">
                 <div className="calc-field">
-                  <label>Кількість майстрів</label>
+                  <label>{t('calc.masters')}</label>
                   <div className="range-current">{masters}</div>
                   <input type="range" min="1" max="15" value={masters} onChange={e => setMasters(Number(e.target.value))} />
                   <div className="range-vals"><span>1</span><span>15</span></div>
                 </div>
                 <div className="calc-field">
-                  <label>Записів на день (на майстра)</label>
+                  <label>{t('calc.bookings')}</label>
                   <div className="range-current">{bookings}</div>
                   <input type="range" min="2" max="12" value={bookings} onChange={e => setBookings(Number(e.target.value))} />
                   <div className="range-vals"><span>2</span><span>12</span></div>
                 </div>
                 <div className="calc-field">
-                  <label>Середній чек, ₴</label>
+                  <label>{t('calc.avgcheck')}</label>
                   <div className="range-current">₴{formatNumber(avgCheck)}</div>
                   <input type="range" min="300" max="3000" step="50" value={avgCheck} onChange={e => setAvgCheck(Number(e.target.value))} />
                   <div className="range-vals"><span>₴300</span><span>₴3 000</span></div>
@@ -530,20 +827,20 @@ export default function LandingPage() {
               <div className="calc-results">
                 <h3>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{color:'var(--rose)'}}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                  Ваші щомісячні втрати
+                  {t('calc.results')}
                 </h3>
-                <div className="loss-item"><span className="loss-label">No-show (12% записів)</span><span className="loss-value">₴{formatNumber(lossNoshow)}</span></div>
-                <div className="loss-item"><span className="loss-label">Втрата клієнтів (34%)</span><span className="loss-value">₴{formatNumber(lossChurn)}</span></div>
-                <div className="loss-item"><span className="loss-label">Перевитрата матеріалів</span><span className="loss-value">₴{formatNumber(lossMaterials)}</span></div>
-                <div className="loss-item"><span className="loss-label">Час на рутину (3 год/день)</span><span className="loss-value">₴{formatNumber(lossTime)}</span></div>
+                <div className="loss-item"><span className="loss-label">{t('calc.noshow')}</span><span className="loss-value">₴{formatNumber(lossNoshow)}</span></div>
+                <div className="loss-item"><span className="loss-label">{t('calc.churn')}</span><span className="loss-value">₴{formatNumber(lossChurn)}</span></div>
+                <div className="loss-item"><span className="loss-label">{t('calc.materials')}</span><span className="loss-value">₴{formatNumber(lossMaterials)}</span></div>
+                <div className="loss-item"><span className="loss-label">{t('calc.time')}</span><span className="loss-value">₴{formatNumber(lossTime)}</span></div>
                 <div className="loss-total">
-                  <div className="loss-total-label">Загальні втрати на місяць</div>
+                  <div className="loss-total-label">{t('calc.total')}</div>
                   <div className="loss-total-value">₴{formatNumber(lossTotal)}</div>
-                  <div className="loss-total-sub">Це можна повернути з ShinePRO</div>
+                  <div className="loss-total-sub">{t('calc.total.sub')}</div>
                 </div>
                 <div className="calc-cta">
                   <a href="#cta" className="btn-p">
-                    Перестати втрачати гроші
+                    {t('calc.cta')}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                   </a>
                 </div>
@@ -556,52 +853,52 @@ export default function LandingPage() {
       {/* FEATURES */}
       <section className="feat" id="features">
         <div className="feat-hd">
-          <span className="eyebrow">Можливості</span>
-          <h2>Не просто CRM, а операційна система вашого салону</h2>
-          <p>Кожна функція вирішує конкретну бізнес-проблему і приносить вимірюваний результат.</p>
+          <span className="eyebrow">{t('feat.eyebrow')}</span>
+          <h2>{t('feat.title')}</h2>
+          <p>{t('feat.desc')}</p>
         </div>
         <div className="bento">
           <div className="bc bc-1">
             <div className="ico ico-violet">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <h3>Розумний календар з AI-оптимізацією</h3>
-            <p>Система аналізує середню тривалість послуг і пропонує оптимальне розміщення записів. Мінус 40 хвилин простоїв на день.</p>
+            <h3>{t('feat.1.title')}</h3>
+            <p>{t('feat.1.desc')}</p>
           </div>
           <div className="bc bc-2">
             <div className="ico ico-rose">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             </div>
-            <h3>Автоматизації</h3>
-            <p>7 готових сценаріїв які працюють без вашої участі. No-show знижується з 12% до 2%.</p>
+            <h3>{t('feat.2.title')}</h3>
+            <p>{t('feat.2.desc')}</p>
           </div>
           <div className="bc bc-3">
             <div className="ico ico-emerald">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
             </div>
-            <h3>RFM-сегментація</h3>
-            <p>Автоматичний поділ бази по лояльності. Кожен сегмент отримує свою стратегію повернення.</p>
+            <h3>{t('feat.3.title')}</h3>
+            <p>{t('feat.3.desc')}</p>
           </div>
           <div className="bc bc-4">
             <div className="ico ico-amber">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
             </div>
-            <h3>Склад</h3>
-            <p>Техкарти автоматично списують матеріали. Повідомлення коли запас менше мінімуму.</p>
+            <h3>{t('feat.4.title')}</h3>
+            <p>{t('feat.4.desc')}</p>
           </div>
           <div className="bc bc-5">
             <div className="ico ico-sky">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
-            <h3>Фінанси</h3>
-            <p>Зарплати, комісії, бонуси — автоматичний розрахунок. Monobank та ПриватБанк інтеграція.</p>
+            <h3>{t('feat.5.title')}</h3>
+            <p>{t('feat.5.desc')}</p>
           </div>
           <div className="bc bc-6">
             <div className="ico ico-violet">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
             </div>
-            <h3>Telegram-бот</h3>
-            <p>Клієнти записуються через бот, отримують нагадування і залишають відгуки. 24/7 без адміністратора.</p>
+            <h3>{t('feat.6.title')}</h3>
+            <p>{t('feat.6.desc')}</p>
           </div>
         </div>
       </section>
@@ -609,65 +906,65 @@ export default function LandingPage() {
       {/* PRICING */}
       <section className="pricing" id="pricing">
         <div className="pricing-hd">
-          <span className="eyebrow">Тарифи</span>
-          <h2>Прозорі ціни без <span className="gt">прихованих платежів</span></h2>
-          <p>Оберіть план під ваш салон. Завжди можна змінити.</p>
+          <span className="eyebrow">{t('pricing.eyebrow')}</span>
+          <h2>{t('pricing.title1')}<span className="gt">{t('pricing.title2')}</span></h2>
+          <p>{t('pricing.desc')}</p>
         </div>
         <div className="pricing-toggle">
-          <span className={!isAnnual ? 'active' : ''}>Щомісяця</span>
+          <span className={!isAnnual ? 'active' : ''}>{t('pricing.monthly')}</span>
           <div className={`toggle-wrap ${isAnnual ? 'annual' : ''}`} onClick={() => setIsAnnual(!isAnnual)}>
             <div className="toggle-knob"></div>
           </div>
-          <span className={isAnnual ? 'active' : ''}>Щорічно</span>
+          <span className={isAnnual ? 'active' : ''}>{t('pricing.yearly')}</span>
           <span className="save-badge">—20%</span>
         </div>
         <div className="pricing-grid">
           <div className="price-card">
-            <div className="price-name">Start</div>
-            <div className="price-desc">Для solo-майстрів та невеликих студій</div>
+            <div className="price-name">{t('pricing.start.name')}</div>
+            <div className="price-desc">{t('pricing.start.desc')}</div>
             <div className="price-amount">
               <span className="price-num">₴{formatNumber(isAnnual ? 399 : 499)}</span>
-              <span className="price-period"> / міс</span>
+              <span className="price-period">{t('per.month')}</span>
             </div>
             <div className="price-features">
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>До 2 майстрів</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Онлайн-запис + календар</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Telegram-нагадування</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>База клієнтів до 500</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.start.f1')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.start.f2')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.start.f3')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.start.f4')}</div>
             </div>
-            <a href="#cta" className="price-btn price-btn-outline">Почати безкоштовно</a>
+            <a href="#cta" className="price-btn price-btn-outline">{t('pricing.start.btn')}</a>
           </div>
           <div className="price-card popular">
-            <span className="popular-tag">Найпопулярніший</span>
-            <div className="price-name">Pro</div>
-            <div className="price-desc">Для салонів з командою та амбіціями</div>
+            <span className="popular-tag">{t('pricing.pro.tag')}</span>
+            <div className="price-name">{t('pricing.pro.name')}</div>
+            <div className="price-desc">{t('pricing.pro.desc')}</div>
             <div className="price-amount">
               <span className="price-num">₴{formatNumber(isAnnual ? 799 : 999)}</span>
-              <span className="price-period"> / міс</span>
+              <span className="price-period">{t('per.month')}</span>
             </div>
             <div className="price-features">
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>До 8 майстрів</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>RFM-аналітика + автоматизації</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Telegram-бот для запису</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Склад + техкарти</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Фінанси + зарплати</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.pro.f1')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.pro.f2')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.pro.f3')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.pro.f4')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.pro.f5')}</div>
             </div>
-            <a href="#cta" className="price-btn price-btn-primary">Почати безкоштовно</a>
+            <a href="#cta" className="price-btn price-btn-primary">{t('pricing.pro.btn')}</a>
           </div>
           <div className="price-card">
-            <div className="price-name">Enterprise</div>
-            <div className="price-desc">Для мереж салонів та франшиз</div>
+            <div className="price-name">{t('pricing.ent.name')}</div>
+            <div className="price-desc">{t('pricing.ent.desc')}</div>
             <div className="price-amount">
               <span className="price-num">₴{formatNumber(isAnnual ? 1999 : 2499)}</span>
-              <span className="price-period"> / міс</span>
+              <span className="price-period">{t('per.month')}</span>
             </div>
             <div className="price-features">
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Необмежено майстрів</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Мультилокації</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>API + кастомні інтеграції</div>
-              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Виділений менеджер</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.ent.f1')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.ent.f2')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.ent.f3')}</div>
+              <div className="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('pricing.ent.f4')}</div>
             </div>
-            <a href="#cta" className="price-btn price-btn-outline">Зв&apos;язатися з нами</a>
+            <a href="#cta" className="price-btn price-btn-outline">{t('pricing.ent.btn')}</a>
           </div>
         </div>
       </section>
@@ -675,9 +972,9 @@ export default function LandingPage() {
       {/* TESTIMONIALS */}
       <section className="test" id="reviews">
         <div className="test-hd">
-          <span className="eyebrow">Відгуки</span>
-          <h2>Що кажуть власники салонів</h2>
-          <p>Реальні історії, конкретні цифри</p>
+          <span className="eyebrow">{t('reviews.eyebrow')}</span>
+          <h2>{t('reviews.title')}</h2>
+          <p>{t('reviews.desc')}</p>
         </div>
         <div className="test-grid">
           <div className="tc-card">
@@ -686,10 +983,10 @@ export default function LandingPage() {
                 <svg key={i} className="tc-star" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               ))}
             </div>
-            <p className="tc-text">За перший місяць <strong>no-show впав з 14% до 2.3%</strong>. Це ₴23,000 які раніше просто зникали. Автонагадування в Telegram — найкраща інвестиція.</p>
+            <p className="tc-text" dangerouslySetInnerHTML={{__html: t('rev.1')}} />
             <div className="tc-author">
               <div className="tc-av-c" style={{background:'var(--violet)'}}>ОМ</div>
-              <div><div className="tc-name">Олена М.</div><div className="tc-co">Nail-студія · Київ · 5 майстрів</div></div>
+              <div><div className="tc-name">{t('rev.1.name')}</div><div className="tc-co">{t('rev.1.co')}</div></div>
             </div>
           </div>
           <div className="tc-card">
@@ -698,10 +995,10 @@ export default function LandingPage() {
                 <svg key={i} className="tc-star" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               ))}
             </div>
-            <p className="tc-text">RFM-сегментація показала, що <strong>27% бази — «сплячі» клієнти</strong>. Запустили автоматичну реактивацію — повернули 68 клієнтів за місяць.</p>
+            <p className="tc-text" dangerouslySetInnerHTML={{__html: t('rev.2')}} />
             <div className="tc-author">
               <div className="tc-av-c" style={{background:'var(--rose)'}}>ІК</div>
-              <div><div className="tc-name">Ірина К.</div><div className="tc-co">Beauty Space · Одеса · 3 майстри</div></div>
+              <div><div className="tc-name">{t('rev.2.name')}</div><div className="tc-co">{t('rev.2.co')}</div></div>
             </div>
           </div>
           <div className="tc-card">
@@ -710,10 +1007,10 @@ export default function LandingPage() {
                 <svg key={i} className="tc-star" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               ))}
             </div>
-            <p className="tc-text">Техкарти з автосписанням — <strong>щомісячна економія ₴12,000 на матеріалах</strong>. Раніше зливали на перевитрату. Тепер кожен грам під контролем.</p>
+            <p className="tc-text" dangerouslySetInnerHTML={{__html: t('rev.3')}} />
             <div className="tc-author">
               <div className="tc-av-c" style={{background:'var(--amber)'}}>АШ</div>
-              <div><div className="tc-name">Анастасія Ш.</div><div className="tc-co">Nail Bar · Харків · 7 майстрів</div></div>
+              <div><div className="tc-name">{t('rev.3.name')}</div><div className="tc-co">{t('rev.3.co')}</div></div>
             </div>
           </div>
         </div>
@@ -723,15 +1020,15 @@ export default function LandingPage() {
       <section className="faq" id="faq">
         <div className="faq-hd">
           <span className="eyebrow">FAQ</span>
-          <h2>Часті запитання</h2>
-          <p>Не знайшли відповідь? Напишіть нам в Telegram — відповімо за 5 хвилин.</p>
+          <h2>{t('faq.title')}</h2>
+          <p>{t('faq.desc')}</p>
         </div>
         <div className="faq-list">
           {[
-            { q: 'Скільки часу займає налаштування?', a: 'Реєстрація займає 5 хвилин. Базове налаштування з додаванням послуг і майстрів — 15 хвилин. Якщо у вас є база клієнтів в Excel або іншій CRM, ми безкоштовно допоможемо перенести її протягом 24 годин.' },
-            { q: 'Чи потрібно встановлювати щось на комп\'ютер?', a: 'Ні. ShinePRO працює в браузері та як PWA-додаток на телефоні. Заходите з будь-якого пристрою — всі дані синхронізуються автоматично.' },
-            { q: 'Як працює Telegram-бот для клієнтів?', a: 'Клієнт знаходить бот вашого салону в Telegram, бачить вільні слоти, обирає майстра та послугу, підтверджує запис. За 2 години до візиту отримує нагадування.' },
-            { q: 'Що якщо мені не підійде?', a: '14 днів безкоштовного тріалу без прив\'язки картки. Якщо не підійде — просто не продовжуйте. Жодних зобов\'язань.' },
+            { q: t('faq.1.q'), a: t('faq.1.a') },
+            { q: t('faq.2.q'), a: t('faq.2.a') },
+            { q: t('faq.3.q'), a: t('faq.3.a') },
+            { q: t('faq.4.q'), a: t('faq.4.a') },
           ].map((item, i) => (
             <div key={i} className={`faq-item ${openFaq === i ? 'open' : ''}`} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
               <div className="faq-q">
@@ -750,23 +1047,23 @@ export default function LandingPage() {
       <section className="cta" id="cta">
         <div className="cta-glow"></div>
         <div className="cta-c">
-          <h2>Перестаньте рахувати в Excel.<br/>Почніть <span className="gt">заробляти більше</span></h2>
-          <p className="cta-desc">Залиште заявку — ми допоможемо налаштувати все за вас. Безкоштовно.</p>
+          <h2>{t('cta.title1')}<br/>{t('cta.title2')}<span className="gt">{t('cta.title3')}</span></h2>
+          <p className="cta-desc">{t('cta.desc')}</p>
           <form className="lead-form" onSubmit={handleSubmit}>
             <div className="lead-row">
-              <input type="text" placeholder="Ваше ім'я" required />
-              <input type="tel" placeholder="+380 XX XXX XX XX" required />
+              <input type="text" placeholder={t('cta.name')} required />
+              <input type="tel" placeholder={t('cta.phone')} required />
             </div>
             <div className="lead-row">
-              <input type="text" placeholder="Назва салону" />
+              <input type="text" placeholder={t('cta.salon')} />
             </div>
-            <button type="submit" className="lead-submit">Отримати безкоштовний доступ</button>
-            <div className="lead-note">14 днів безкоштовно · Без картки · Налаштування за 5 хвилин</div>
+            <button type="submit" className="lead-submit">{t('cta.submit')}</button>
+            <div className="lead-note">{t('cta.note')}</div>
           </form>
           <div className="cta-feats">
-            <div className="cta-f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Без картки</div>
-            <div className="cta-f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Без зобов&apos;язань</div>
-            <div className="cta-f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>Підтримка 24/7</div>
+            <div className="cta-f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('cta.f1')}</div>
+            <div className="cta-f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('cta.f2')}</div>
+            <div className="cta-f"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>{t('cta.f3')}</div>
           </div>
         </div>
       </section>
@@ -779,12 +1076,12 @@ export default function LandingPage() {
               <div className="logo-mark"><span>S</span></div>
               <span className="logo-name">ShinePRO</span>
             </Link>
-            <span className="foot-copy">© 2026 ShinePRO. Всі права захищені.</span>
+            <span className="foot-copy">{t('footer.copy')}</span>
           </div>
           <div className="foot-links">
-            <a href="#">Конфіденційність</a>
-            <a href="#">Умови</a>
-            <a href="#">Підтримка</a>
+            <a href="#">{t('footer.privacy')}</a>
+            <a href="#">{t('footer.terms')}</a>
+            <a href="#">{t('footer.support')}</a>
           </div>
         </div>
       </footer>
@@ -792,7 +1089,7 @@ export default function LandingPage() {
       {/* TOAST */}
       <div className={`toast ${toastVisible ? 'show' : ''}`}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        <span>Заявку надіслано! Зв&apos;яжемося з вами за 5 хвилин.</span>
+        <span>{t('toast')}</span>
       </div>
     </>
   )
