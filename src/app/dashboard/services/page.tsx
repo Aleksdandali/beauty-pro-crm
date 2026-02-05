@@ -511,12 +511,11 @@ export default function ServicesPage() {
                 </div>
               </form>
             </div>
-          </div>
         )}
 
-          </div>
-        </div>
-      </PullToRefreshWrapper>
+      </div>
+    </div>
+    </PullToRefreshWrapper>
     </>
   );
 }

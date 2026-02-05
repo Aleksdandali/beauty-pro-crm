@@ -488,11 +488,10 @@ export default function TeamPage() {
           </div>
         )}
 
-      </div>
         <Toaster />
-          </div>
-        </div>
-      </PullToRefreshWrapper>
+      </div>
+    </div>
+    </PullToRefreshWrapper>
     </>
   );
 }

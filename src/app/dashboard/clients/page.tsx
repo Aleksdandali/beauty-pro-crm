@@ -695,11 +695,10 @@ export default function ClientsPage() {
           </div>
         )}
 
-      </div>
         <Toaster />
-          </div>
-        </div>
-      </PullToRefreshWrapper>
+      </div>
+    </div>
+    </PullToRefreshWrapper>
     </>
   );
 }
