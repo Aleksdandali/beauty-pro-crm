@@ -558,14 +558,16 @@ export default function CalendarPage() {
               {/* Дні місяця */}
               <div className="grid grid-cols-7">
                 {getMonthDays().map((day, i) => {
-                  const dayAppointments = day ? filteredAppointments.filter(apt => isSameDay(new Date(apt.start_time), day)) : [];
-                  const isToday = day && isSameDay(day, today);
+                  const dayAppointments = day 
+                    ? filteredAppointments.filter(apt => isSameDay(new Date(apt.start_time), day)) 
+                    : [];
+                  const isToday = day && isSameDay(day, new Date());
                   
                   return (
                     <div
                       key={i}
-                      className={`min-h-[100px] p-2 border-b border-r border-gray-100 dark:border-white/5 ${
-                        day ? "hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer" : "bg-gray-50 dark:bg-white/5"
+                      className={`min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border-b border-r border-gray-100 dark:border-white/5 ${
+                        day ? "hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer" : "bg-gray-50/50 dark:bg-white/[0.02]"
                       } ${isToday ? "bg-violet-50 dark:bg-violet-500/10" : ""}`}
                       onClick={() => day && setSelectedDayForModal(day)}
                     >
@@ -573,25 +575,24 @@ export default function CalendarPage() {
                         <>
                           <div className={`text-sm font-medium mb-1 ${
                             isToday 
-                              ? "w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center" 
+                              ? "w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs sm:text-sm" 
                               : "text-gray-900 dark:text-white"
                           }`}>
                             {day.getDate()}
                           </div>
-                          <div className="space-y-1">
-                            {dayAppointments.slice(0, 3).map(apt => (
+                          <div className="space-y-0.5 sm:space-y-1">
+                            {dayAppointments.slice(0, 2).map(apt => (
                               <div
                                 key={apt.id}
-                                className="text-xs p-1 rounded truncate"
+                                className="text-[10px] sm:text-xs p-0.5 sm:p-1 rounded truncate"
                                 style={{ backgroundColor: apt.service?.color + "30", color: apt.service?.color }}
-                                onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
                               >
-                                {formatTime(apt.start_time)} {apt.client?.full_name?.split(" ")[0]}
+                                {formatTime(apt.start_time).slice(0, 5)} {apt.client?.full_name?.split(" ")[0] || "Запис"}
                               </div>
                             ))}
-                            {dayAppointments.length > 3 && (
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                +{dayAppointments.length - 3} ще
+                            {dayAppointments.length > 2 && (
+                              <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 pl-1">
+                                +{dayAppointments.length - 2} ще
                               </div>
                             )}
                           </div>
