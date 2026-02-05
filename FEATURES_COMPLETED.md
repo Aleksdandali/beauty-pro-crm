@@ -1,4 +1,4 @@
-# Beauty Pro CRM - Реалізований функціонал
+# ShinePRO CRM - Реалізований функціонал
 
 ## 📊 Загальна оцінка готовності: **85%**
 
@@ -19,7 +19,7 @@
 
 ### Deployment
 - ✅ **Vercel** - Production hosting
-- ✅ Production URL: https://beauty-pro-crm-pi.vercel.app
+- ✅ Production URL: https://beauty-pro-crm-apps.vercel.app
 - ✅ Автоматичний деплой з GitHub
 - ✅ Environment variables налаштовані
 

@@ -104,7 +104,10 @@ export default function DashboardLayout({
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-gray-900 dark:text-white">Beauty Pro</span>
+              <div className="flex flex-col">
+                <span className="font-semibold text-gray-900 dark:text-white">ShinePRO</span>
+                <span className="text-[9px] text-gray-500 dark:text-gray-400 tracking-wider">CRM for beauty</span>
+              </div>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}

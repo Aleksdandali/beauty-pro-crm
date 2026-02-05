@@ -1,8 +1,8 @@
-# Beauty Pro CRM - Контекст проекту
+# ShinePRO CRM - Контекст проекту
 
 ## 🎯 Про проект
 
-**Beauty Pro CRM** — CRM система для салонів краси на Next.js 14
+**ShinePRO CRM** — CRM система для салонів краси на Next.js 14
 
 - **Production URL**: https://beauty-pro-crm-pi.vercel.app
 - **Стек**: Next.js 14 + TypeScript + Tailwind CSS + Supabase + Vercel

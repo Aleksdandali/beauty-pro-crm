@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-This directory contains the unified database schema for **Beauty Pro CRM** - a multi-tenant beauty salon management system.
+This directory contains the unified database schema for **ShinePRO CRM** - a multi-tenant beauty salon management system.
 
 ## 📁 Files
 
@@ -259,4 +259,4 @@ Then re-run the schema (drop the enum first if it exists).
 
 **Created:** 2026-02-04  
 **Version:** 1.0  
-**Maintainer:** Beauty Pro CRM Team
+**Maintainer:** ShinePRO CRM Team

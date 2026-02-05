@@ -120,10 +120,13 @@ export default function SignUpPage() {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-8">
-              <div className="w-9 h-9 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl">💅</span>
+              <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold">S</span>
               </div>
-              <span className="text-black font-bold text-base">Beauty Pro CRM</span>
+              <div className="flex flex-col">
+                <span className="text-black font-bold text-base">ShinePRO</span>
+                <span className="text-[9px] text-zinc-500 tracking-wider">CRM for beauty</span>
+              </div>
             </div>
             <h1 className="text-3xl font-bold text-black tracking-tight mb-3">
               Create your account

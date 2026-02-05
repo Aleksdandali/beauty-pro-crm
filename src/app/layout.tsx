@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Beauty Pro CRM",
-  description: "Professional CRM system for beauty salons",
+  title: "ShinePRO CRM",
+  description: "Professional CRM system for beauty salons — ShinePRO CRM",
 };
 
 export default function RootLayout({

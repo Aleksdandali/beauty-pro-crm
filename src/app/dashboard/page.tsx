@@ -256,7 +256,7 @@ export default function DashboardPage() {
       {/* Mobile Title */}
       <div className="mb-6 md:hidden">
         <h1 className="text-xl font-bold text-black tracking-tight">
-          Beauty Pro CRM
+          ShinePRO CRM
         </h1>
         <p className="text-sm text-zinc-600 mt-1">Панель керування салоном</p>
       </div>
