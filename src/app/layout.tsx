@@ -1,30 +1,33 @@
-// ShinePRO CRM - Production Build
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Providers } from "./providers";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
+import { ThemeProvider } from 'next-themes';
+import './globals.css';
 
-const inter = Inter({ 
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-inter",
+const inter = Inter({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-inter',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
 });
 
 export const metadata: Metadata = {
-  title: "ShinePRO CRM",
-  description: "Professional CRM system for beauty salons — ShinePRO CRM",
+  title: 'Shine Beauty CRM',
+  description: 'CRM для beauty-індустрії — записи, клієнти, стерилізація, аналітика',
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="uk" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <Providers>{children}</Providers>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {children}
         </ThemeProvider>
       </body>
     </html>
