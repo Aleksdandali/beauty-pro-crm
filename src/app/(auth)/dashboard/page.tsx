@@ -1,10 +1,19 @@
+import { Suspense } from 'react';
+import { getDashboardData } from '@/lib/queries/dashboard';
+import { DashboardContent } from './DashboardContent';
+import { DashboardSkeleton } from './DashboardSkeleton';
+
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Coming soon</p>
-      </div>
-    </main>
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardDataLoader />
+    </Suspense>
   );
+}
+
+async function DashboardDataLoader() {
+  const data = await getDashboardData();
+  return <DashboardContent data={data} />;
 }

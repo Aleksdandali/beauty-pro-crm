@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/import/clients/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/seed/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

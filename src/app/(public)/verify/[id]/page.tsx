@@ -1,12 +1,30 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getVerifyCycle } from '@/lib/queries/public';
+import { VerifyContent } from './VerifyContent';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const cycle = await getVerifyCycle(id);
+  return {
+    title: cycle
+      ? `Сертифікат ${cycle.cycle_number} — Shine Beauty CRM`
+      : 'QR Верифікація — Shine Beauty CRM',
+    description: cycle
+      ? `Сертифікат стерилізації ${cycle.cycle_number}. Салон: ${cycle.salon_name}`
+      : 'Перевірка стерилізації інструментів',
+  };
+}
+
 export default async function VerifyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const cycle = await getVerifyCycle(id);
 
-  return (
-    <main className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">QR верифікація</h1>
-        <p className="text-muted-foreground mt-2">ID: {id} — Coming soon</p>
-      </div>
-    </main>
-  );
+  if (!cycle) notFound();
+
+  return <VerifyContent cycle={cycle} />;
 }
