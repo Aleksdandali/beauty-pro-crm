@@ -1,26 +1,367 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ─── Dark mode variant (class-based via next-themes) ─────────────────────── */
+@custom-variant dark (&:is(.dark *));
 
+/* ─── Tailwind v4 Theme Extensions ────────────────────────────────────────── */
 @theme inline {
+  /* shadcn/ui semantic colors → Tailwind utilities (bg-primary, text-foreground, etc.) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Custom semantic text colors → text-text-primary, text-text-secondary, text-text-muted */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  /* Chart colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar colors */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Border radius scale (shadcn/ui) */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", "Fira Code", monospace;
+
+  /* Named animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT THEME (default)
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Core ──────────────────────────────────────────────────── */
+  --background: #fafafc;
+  --foreground: #1a1a2e;
+
+  /* ── Surfaces ─────────────────────────────────────────────── */
+  --card: #ffffff;
+  --card-foreground: #1a1a2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a2e;
+
+  /* ── Brand ────────────────────────────────────────────────── */
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+
+  /* ── Secondary / Muted / Accent ───────────────────────────── */
+  --secondary: #f3f0ff;
+  --secondary-foreground: #4c1d95;
+  --muted: #f5f3ff;
+  --muted-foreground: #64648c;
+  --accent: #f5f3ff;
+  --accent-foreground: #1a1a2e;
+
+  /* ── Destructive ──────────────────────────────────────────── */
+  --destructive: #f43f5e;
+
+  /* ── Borders & Input ──────────────────────────────────────── */
+  --border: #e5e2ee;
+  --input: #e5e2ee;
+  --ring: #8b5cf6;
+  --radius: 0.625rem;
+
+  /* ── Custom text colors ───────────────────────────────────── */
+  --text-primary: #1a1a2e;
+  --text-secondary: #64648c;
+  --text-muted: #9c9cb8;
+
+  /* ── Glass (glassmorphism) ────────────────────────────────── */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-hover: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-hover: rgba(0, 0, 0, 0.14);
+  --glass-blur: 16px;
+
+  /* ── Shadows ──────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(100, 80, 160, 0.06);
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+
+  /* ── Charts ───────────────────────────────────────────────── */
+  --chart-1: #8b5cf6;
+  --chart-2: #d946ef;
+  --chart-3: #10b981;
+  --chart-4: #f59e0b;
+  --chart-5: #06b6d4;
+
+  /* ── Sidebar ──────────────────────────────────────────────── */
+  --sidebar: #fafafc;
+  --sidebar-foreground: #1a1a2e;
+  --sidebar-primary: #8b5cf6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f3ff;
+  --sidebar-accent-foreground: #1a1a2e;
+  --sidebar-border: #e5e2ee;
+  --sidebar-ring: #8b5cf6;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK THEME
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dark {
+  /* ── Core ──────────────────────────────────────────────────── */
+  --background: #0a0a0f;
+  --foreground: #f1f1f4;
+
+  /* ── Surfaces ─────────────────────────────────────────────── */
+  --card: #12121a;
+  --card-foreground: #f1f1f4;
+  --popover: #12121a;
+  --popover-foreground: #f1f1f4;
+
+  /* ── Brand ────────────────────────────────────────────────── */
+  --primary: #8b5cf6;
+  --primary-foreground: #ffffff;
+
+  /* ── Secondary / Muted / Accent ───────────────────────────── */
+  --secondary: #1e1e2a;
+  --secondary-foreground: #f1f1f4;
+  --muted: #1a1a25;
+  --muted-foreground: #8b8b9e;
+  --accent: #1a1a25;
+  --accent-foreground: #f1f1f4;
+
+  /* ── Destructive ──────────────────────────────────────────── */
+  --destructive: #f43f5e;
+
+  /* ── Borders & Input ──────────────────────────────────────── */
+  --border: #1e1e2e;
+  --input: #1e1e2e;
+  --ring: #8b5cf6;
+
+  /* ── Custom text colors ───────────────────────────────────── */
+  --text-primary: #f1f1f4;
+  --text-secondary: #8b8b9e;
+  --text-muted: #5c5c6f;
+
+  /* ── Glass (glassmorphism) ────────────────────────────────── */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg-hover: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --glass-blur: 16px;
+
+  /* ── Shadows ──────────────────────────────────────────────── */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+
+  /* ── Charts ───────────────────────────────────────────────── */
+  --chart-1: #a78bfa;
+  --chart-2: #e879f9;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #22d3ee;
+
+  /* ── Sidebar ──────────────────────────────────────────────── */
+  --sidebar: #0a0a0f;
+  --sidebar-foreground: #f1f1f4;
+  --sidebar-primary: #8b5cf6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a1a25;
+  --sidebar-accent-foreground: #f1f1f4;
+  --sidebar-border: #1e1e2e;
+  --sidebar-ring: #8b5cf6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Default border color for all elements */
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+  border-color: var(--color-border, currentColor);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes enter {
+  from {
+    opacity: var(--tw-enter-opacity, 1);
+    transform: translate3d(
+        var(--tw-enter-translate-x, 0),
+        var(--tw-enter-translate-y, 0),
+        0
+      )
+      scale3d(
+        var(--tw-enter-scale, 1),
+        var(--tw-enter-scale, 1),
+        var(--tw-enter-scale, 1)
+      )
+      rotate(var(--tw-enter-rotate, 0));
+  }
+}
+
+@keyframes exit {
+  to {
+    opacity: var(--tw-exit-opacity, 1);
+    transform: translate3d(
+        var(--tw-exit-translate-x, 0),
+        var(--tw-exit-translate-y, 0),
+        0
+      )
+      scale3d(
+        var(--tw-exit-scale, 1),
+        var(--tw-exit-scale, 1),
+        var(--tw-exit-scale, 1)
+      )
+      rotate(var(--tw-exit-rotate, 0));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANIMATION UTILITIES (shadcn/ui enter/exit animations for Tailwind v4)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Enter / Exit base ───────────────────────────────────────────────────── */
+@utility animate-in {
+  animation-name: enter;
+  animation-duration: 150ms;
+  --tw-enter-opacity: initial;
+  --tw-enter-scale: initial;
+  --tw-enter-rotate: initial;
+  --tw-enter-translate-x: initial;
+  --tw-enter-translate-y: initial;
+}
+
+@utility animate-out {
+  animation-name: exit;
+  animation-duration: 150ms;
+  --tw-exit-opacity: initial;
+  --tw-exit-scale: initial;
+  --tw-exit-rotate: initial;
+  --tw-exit-translate-x: initial;
+  --tw-exit-translate-y: initial;
+}
+
+/* ── Fade ─────────────────────────────────────────────────────────────────── */
+@utility fade-in-0 {
+  --tw-enter-opacity: 0;
+}
+@utility fade-out-0 {
+  --tw-exit-opacity: 0;
+}
+
+/* ── Zoom ─────────────────────────────────────────────────────────────────── */
+@utility zoom-in-95 {
+  --tw-enter-scale: 0.95;
+}
+@utility zoom-out-95 {
+  --tw-exit-scale: 0.95;
+}
+
+/* ── Slide In ─────────────────────────────────────────────────────────────── */
+@utility slide-in-from-top {
+  --tw-enter-translate-y: -100%;
+}
+@utility slide-in-from-top-2 {
+  --tw-enter-translate-y: -0.5rem;
+}
+@utility slide-in-from-bottom {
+  --tw-enter-translate-y: 100%;
+}
+@utility slide-in-from-bottom-2 {
+  --tw-enter-translate-y: 0.5rem;
+}
+@utility slide-in-from-left {
+  --tw-enter-translate-x: -100%;
+}
+@utility slide-in-from-left-2 {
+  --tw-enter-translate-x: -0.5rem;
+}
+@utility slide-in-from-right {
+  --tw-enter-translate-x: 100%;
+}
+@utility slide-in-from-right-2 {
+  --tw-enter-translate-x: 0.5rem;
+}
+
+/* ── Slide Out ────────────────────────────────────────────────────────────── */
+@utility slide-out-to-top {
+  --tw-exit-translate-y: -100%;
+}
+@utility slide-out-to-bottom {
+  --tw-exit-translate-y: 100%;
+}
+@utility slide-out-to-left {
+  --tw-exit-translate-x: -100%;
+}
+@utility slide-out-to-right {
+  --tw-exit-translate-x: 100%;
 }
