@@ -1,0 +1,23 @@
+# Shine Beauty CRM — Правила для Cursor
+
+## ЗАБОРОНЕНО змінювати без явного запиту:
+- src/app/globals.css
+- src/styles/design-tokens.ts
+- tailwind.config.ts
+- src/components/glass/*
+- src/components/animations/*
+- Theme provider та dark mode
+- Layout файли (sidebar, bottom nav, dashboard layout)
+
+## Дизайн "Glass Beauty" — НЕ ЧІПАТИ:
+- Dark фон: #0A0A0F
+- Картки: bg-white/5 backdrop-blur-xl border-white/10
+- Градієнти: violet-500 → fuchsia-500
+- className="dark" на html
+
+## При будь-якій задачі:
+- НЕ змінюй стилі якщо задача не про дизайн
+- НЕ видаляй CSS класи
+- НЕ змінюй globals.css та tailwind.config.ts
+- НЕ змінюй package.json версії залежностей
+- НЕ видаляй .npmrc, .nvmrc, vercel.json
