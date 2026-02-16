@@ -25,11 +25,13 @@ import {
   AlertTriangle,
   Sparkles,
   Download,
+  Truck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GlassCard, GlassBadge } from '@/components/glass';
 import { useSalonId } from '@/components/providers/AuthProvider';
 import { FadeIn } from '@/components/animations';
+import { SupplierList } from '@/components/suppliers/SupplierList';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -46,6 +48,7 @@ type SettingsTab =
   | 'team'
   | 'booking'
   | 'integrations'
+  | 'suppliers'
   | 'plan'
   | 'data';
 
@@ -56,6 +59,7 @@ const TABS: { key: SettingsTab; label: string; icon: typeof Building }[] = [
   { key: 'team', label: 'Команда', icon: Users },
   { key: 'booking', label: 'Онлайн-запис', icon: Calendar },
   { key: 'integrations', label: 'Інтеграції', icon: Plug },
+  { key: 'suppliers', label: 'Постачальники', icon: Truck },
   { key: 'plan', label: 'Тариф', icon: CreditCard },
   { key: 'data', label: 'Дані', icon: Database },
 ];
@@ -203,6 +207,7 @@ export function SettingsContent({ salon, staff, clientCount }: Props) {
           {activeTab === 'team' && <TeamTab staff={staff} toast={toast} />}
           {activeTab === 'booking' && <BookingTab salon={salon} toast={toast} />}
           {activeTab === 'integrations' && <IntegrationsTab salon={salon} toast={toast} />}
+          {activeTab === 'suppliers' && <SupplierList />}
           {activeTab === 'plan' && (
             <PlanTab salon={salon} staffCount={staff.length} clientCount={clientCount} />
           )}

@@ -1,0 +1,260 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { getCurrentSalonId } from '@/lib/auth';
+
+/**
+ * POST /api/auto-order/check
+ *
+ * Evaluates all enabled auto-order rules for the salon:
+ *  1. Finds rules where inventory quantity <= min_stock_threshold
+ *  2. Checks max_price guard against current supplier price
+ *  3. Groups triggered rules by supplier
+ *  4. Creates a draft supplier_order per supplier with the triggered items
+ *  5. Updates rule execution metadata
+ */
+export async function POST(_request: NextRequest) {
+  let salonId: string;
+  try {
+    salonId = await getCurrentSalonId();
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const supabase = await createClient();
+
+  try {
+    // 1. Fetch enabled rules with related inventory and supplier product data
+    const { data: rules, error: rulesErr } = await supabase
+      .from('auto_order_rules')
+      .select(
+        `
+        id,
+        supplier_product_id,
+        inventory_item_id,
+        min_stock_threshold,
+        reorder_quantity,
+        max_price,
+        supplier_product:supplier_products!supplier_product_id (
+          id,
+          supplier_id,
+          external_id,
+          name,
+          price,
+          in_stock
+        ),
+        inventory_item:inventory_items!inventory_item_id (
+          id,
+          name,
+          quantity
+        )
+        `,
+      )
+      .eq('salon_id', salonId)
+      .eq('is_enabled', true);
+
+    if (rulesErr) {
+      console.error('[AUTO-ORDER] Failed to fetch rules:', rulesErr.message);
+      return NextResponse.json(
+        { error: 'Помилка завантаження правил автозамовлення' },
+        { status: 500 },
+      );
+    }
+
+    if (!rules || rules.length === 0) {
+      return NextResponse.json({
+        triggered: 0,
+        orders_created: 0,
+        details: [],
+      });
+    }
+
+    // 2. Filter rules where inventory is at or below threshold
+    type TriggeredRule = {
+      ruleId: string;
+      supplierProductId: string;
+      inventoryItemId: string;
+      supplierId: string;
+      productName: string;
+      reorderQuantity: number;
+      pricePerUnit: number;
+      currentStock: number;
+      threshold: number;
+    };
+
+    const triggeredRules: TriggeredRule[] = [];
+
+    for (const rule of rules) {
+      const supplierProduct = rule.supplier_product as unknown as {
+        id: string;
+        supplier_id: string;
+        external_id: string;
+        name: string;
+        price: number;
+        in_stock: boolean;
+      } | null;
+
+      const inventoryItem = rule.inventory_item as unknown as {
+        id: string;
+        name: string;
+        quantity: number;
+      } | null;
+
+      if (!supplierProduct || !inventoryItem) continue;
+
+      // Check stock threshold
+      if (inventoryItem.quantity > rule.min_stock_threshold) continue;
+
+      // Check product availability
+      if (!supplierProduct.in_stock) continue;
+
+      // Check max_price guard
+      if (rule.max_price !== null && supplierProduct.price > rule.max_price) {
+        continue;
+      }
+
+      triggeredRules.push({
+        ruleId: rule.id,
+        supplierProductId: supplierProduct.id,
+        inventoryItemId: inventoryItem.id,
+        supplierId: supplierProduct.supplier_id,
+        productName: supplierProduct.name,
+        reorderQuantity: rule.reorder_quantity,
+        pricePerUnit: supplierProduct.price,
+        currentStock: inventoryItem.quantity,
+        threshold: rule.min_stock_threshold,
+      });
+    }
+
+    if (triggeredRules.length === 0) {
+      return NextResponse.json({
+        triggered: 0,
+        orders_created: 0,
+        details: [],
+      });
+    }
+
+    // 3. Group triggered rules by supplier_id
+    const bySupplier = new Map<string, TriggeredRule[]>();
+    for (const rule of triggeredRules) {
+      const list = bySupplier.get(rule.supplierId) ?? [];
+      list.push(rule);
+      bySupplier.set(rule.supplierId, list);
+    }
+
+    // 4. Create a draft order per supplier
+    const orderDetails: Array<{
+      supplierId: string;
+      orderId: string;
+      orderNumber: string;
+      itemsCount: number;
+      total: number;
+    }> = [];
+
+    for (const [supplierId, items] of bySupplier) {
+      // Fetch supplier discount
+      const { data: supplierData } = await supabase
+        .from('suppliers')
+        .select('discount_percent')
+        .eq('id', supplierId)
+        .single();
+
+      const discountPercent = supplierData?.discount_percent ?? 0;
+
+      const subtotal = items.reduce(
+        (sum, item) => sum + item.reorderQuantity * item.pricePerUnit,
+        0,
+      );
+      const discountAmount =
+        Math.round(subtotal * (discountPercent / 100) * 100) / 100;
+      const total = subtotal - discountAmount;
+
+      // Insert draft order (order_number auto-generated by DB trigger)
+      const { data: order, error: orderErr } = await supabase
+        .from('supplier_orders')
+        .insert({
+          salon_id: salonId,
+          supplier_id: supplierId,
+          status: 'draft',
+          subtotal,
+          discount_amount: discountAmount,
+          delivery_cost: 0,
+          total,
+          notes: 'Автоматичне замовлення — низький залишок на складі',
+          is_auto_generated: true,
+          auto_order_trigger: 'low_stock',
+        })
+        .select('id, order_number')
+        .single();
+
+      if (orderErr || !order) {
+        console.error(
+          `[AUTO-ORDER] Failed to create order for supplier ${supplierId}:`,
+          orderErr?.message,
+        );
+        continue;
+      }
+
+      // Insert order items
+      const orderItems = items.map((item) => ({
+        order_id: order.id,
+        supplier_product_id: item.supplierProductId,
+        inventory_item_id: item.inventoryItemId,
+        quantity: item.reorderQuantity,
+        price_per_unit: item.pricePerUnit,
+        total: item.reorderQuantity * item.pricePerUnit,
+        quantity_received: 0,
+      }));
+
+      const { error: itemsErr } = await supabase
+        .from('supplier_order_items')
+        .insert(orderItems);
+
+      if (itemsErr) {
+        console.error(
+          `[AUTO-ORDER] Failed to insert order items for order ${order.id}:`,
+          itemsErr.message,
+        );
+        // Rollback: delete the empty order
+        await supabase.from('supplier_orders').delete().eq('id', order.id);
+        continue;
+      }
+
+      // 5. Update rules: last_triggered_at, last_order_id
+      const ruleIds = items.map((item) => item.ruleId);
+      const { error: ruleUpdateErr } = await supabase
+        .from('auto_order_rules')
+        .update({
+          last_triggered_at: new Date().toISOString(),
+          last_order_id: order.id,
+        })
+        .in('id', ruleIds);
+
+      if (ruleUpdateErr) {
+        console.error(
+          `[AUTO-ORDER] Failed to update rules for order ${order.id}:`,
+          ruleUpdateErr.message,
+        );
+      }
+
+      orderDetails.push({
+        supplierId,
+        orderId: order.id,
+        orderNumber: order.order_number,
+        itemsCount: items.length,
+        total,
+      });
+    }
+
+    return NextResponse.json({
+      triggered: triggeredRules.length,
+      orders_created: orderDetails.length,
+      details: orderDetails,
+    });
+  } catch (err) {
+    console.error('[AUTO-ORDER] Unexpected error:', err);
+    return NextResponse.json(
+      { error: 'Помилка перевірки правил автозамовлення' },
+      { status: 500 },
+    );
+  }
+}
